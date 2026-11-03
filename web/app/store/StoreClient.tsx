@@ -2,7 +2,7 @@
 import "./store.css";
 import { useEffect, useMemo, useState } from "react";
 
-type P = { id: string; category: string; code: string; name: string; price: number };
+type P = { id: string; category: string; code: string; name: string; price: number; image?: string };
 type Bank = { accountName: string; accountNumber: string; swift: string; bank: string };
 const peso = (n: number) => "₱" + Math.round(n).toLocaleString("en-PH");
 
@@ -55,6 +55,7 @@ export default function StoreClient({ products, user, bank }: { products: P[]; u
       {!list.length && <p className="muted">{cat === "♥ Wishlist" ? "Your wishlist is empty — tap ♥ on any item." : "No items match."}</p>}
       {list.map((p) => { const n = qty[p.id] || 1; return <article key={p.id} className="sp">
         <div className="sp-top"><span className="eyebrow" style={{ fontSize: 10 }}>{p.category}</span><button type="button" className={"wish" + (wish[p.id] ? " on" : "")} aria-label="Wishlist" aria-pressed={!!wish[p.id]} onClick={() => setWish((w) => { const x = { ...w }; if (x[p.id]) delete x[p.id]; else x[p.id] = 1; return x; })}>♥</button></div>
+        <button type="button" className="sp-img" onClick={() => setModal({ kind: "spec", p })} aria-label={"View " + p.name}>{p.image ? <img src={p.image} alt={p.name} loading="lazy" /> : <span>🛡️</span>}</button>
         <button type="button" className="sp-name" onClick={() => setModal({ kind: "spec", p })}>{p.name}</button>
         <div className="sp-code">{p.code && "Code: " + p.code}</div>
         <div className="sp-price">{peso(p.price)}</div>
@@ -67,7 +68,7 @@ export default function StoreClient({ products, user, bank }: { products: P[]; u
     {modal && <div className="ov" role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setModal(null)}><div className="mbox">
       <button type="button" className="x" aria-label="Close" onClick={() => setModal(null)}>×</button>
       {modal.kind === "spec" && <>
-        <div className="eyebrow">{modal.p.category}</div><h2>{modal.p.name}</h2><div className="big">{peso(modal.p.price)}</div>
+        {modal.p.image && <img src={modal.p.image} alt={modal.p.name} style={{ width: "100%", maxHeight: 320, objectFit: "contain", background: "#f8fafc", borderRadius: 12, marginBottom: 10 }} />}<div className="eyebrow">{modal.p.category}</div><h2>{modal.p.name}</h2><div className="big">{peso(modal.p.price)}</div>
         <h4>Product Specification</h4>
         <table className="t"><tbody><tr><th>Item Code</th><td>{modal.p.code || "—"}</td></tr><tr><th>Category</th><td>{modal.p.category}</td></tr><tr><th>Description</th><td>{modal.p.name}</td></tr><tr><th>Unit Price</th><td>{peso(modal.p.price)} (PHP)</td></tr><tr><th>Availability</th><td>Subject to stock confirmation</td></tr></tbody></table>
         <BankBox bank={bank} />

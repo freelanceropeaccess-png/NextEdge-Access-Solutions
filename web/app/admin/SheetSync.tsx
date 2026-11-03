@@ -25,7 +25,7 @@ export default function SheetSync({ initial }: { initial: Cfg }) {
     <div className="eyebrow" style={{ marginTop: 10 }}>Product catalog</div>
     <h2 style={{ margin: "4px 0 12px" }}>Google Sheet price updater</h2>
     <div className="card" style={{ maxWidth: 900 }}>
-      <label className="field">Google Sheet link (the KH Trading tab with Item Code, Item Description, Dealer Price)
+      <label className="field">Google Sheet link (the KH Trading tab with Item Code, Item Description, Dealer Price, and optional Image links in column D)
         <input className="input" type="url" value={cfg.url} onChange={(e) => setCfg({ ...cfg, url: e.target.value })} placeholder="https://docs.google.com/spreadsheets/d/…/edit#gid=…" />
         <span className="muted" style={{ fontSize: 12, fontWeight: 400 }}>In Google Sheets: Share → General access → <b>Anyone with the link · Viewer</b>. Copy the link while the right tab is open.</span>
       </label>

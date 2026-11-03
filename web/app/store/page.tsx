@@ -22,7 +22,7 @@ export default async function Store() {
     }))),
     getUser().catch(() => null),
   ]);
-  const pub = products.map((p) => ({ id: p.id, category: p.category, code: p.code, name: p.name, price: p.price }));
+  const pub = products.map((p) => ({ id: p.id, category: p.category, code: p.code, name: p.name, price: p.price, image: (p as { image?: string }).image ?? "" }));
   return <div className="wrap" style={{ padding: "40px 20px" }}>
     <div className="eyebrow">Online Store · PPE &amp; Rope Access Equipment</div>
     <h1>Shop Certified Height-Safety Gear</h1>

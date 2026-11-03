@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { sql } from "./db";
 
-export type SheetRow = { id: string; category: string; code: string; name: string; dealer: number; sell: number | null };
+export type SheetRow = { id: string; category: string; code: string; name: string; dealer: number; sell: number | null; image: string };
 
 /** Minimal CSV parser (handles quotes, commas, newlines in quotes). */
 export function parseCsv(text: string): string[][] {
@@ -32,6 +32,8 @@ export function rowsFromCsv(text: string): SheetRow[] {
   let iDealer = h.findIndex((c) => c.includes("dealer"));
   if (iDealer < 0) iDealer = h.findIndex((c) => c.includes("unit price"));
   if (iDealer < 0) throw new Error("Couldn't find a 'Dealer Price' column.");
+  const iImg = h.findIndex((c) => c === "image" || c.includes("image") || c.includes("photo"));
+  const imgOf = (v: string | undefined) => { const m = String(v ?? "").match(/https?:\/\/[^\s"')]+/); return m ? m[0].slice(0, 1000) : ""; };
   const sub = rows[hi + 1]?.map((c) => c.toLowerCase()) ?? [];
   let iSell = h.findIndex((c) => c.includes("selling"));
   if (iSell < 0) iSell = sub.findIndex((c) => c.includes("sell price (vat)"));
@@ -41,14 +43,15 @@ export function rowsFromCsv(text: string): SheetRow[] {
     if (!name) continue;
     const dealer = num(r[iDealer]);
     if (dealer === null) {
-      if (!code && !/^dealer$/i.test(r[iDealer] ?? "")) { const k = name.toUpperCase(); cat = CATS[k] ?? titleCase(name); }
+      const k = name.toUpperCase();
+      if (!code && (CATS[k] || (name === k && !/\d/.test(name)) || (!/\d/.test(name) && name.split(" ").length <= 2))) cat = CATS[k] ?? titleCase(name);
       continue;
     }
     let c = cat; const n = name.toLowerCase();
     if (n.includes("glove")) c = "Gloves"; else if (n.includes("harness")) c = "Harnesses"; else if (n.includes("carabin")) c = "Carabiners"; else if (/cord\b|rope\b/.test(n) && !n.includes("shield")) c = c === "Other" ? "Ropes & Cowstails" : c;
     const id = "s" + createHash("sha1").update((code + "|" + name).toLowerCase()).digest("hex").slice(0, 10);
     if (seen.has(id)) continue; seen.add(id);
-    out.push({ id, category: c, code, name: name.slice(0, 200), dealer, sell: iSell >= 0 ? num(r[iSell]) : null });
+    out.push({ id, category: c, code, name: name.slice(0, 200), dealer, sell: iSell >= 0 ? num(r[iSell]) : null, image: iImg >= 0 ? imgOf(r[iImg]) : "" });
   }
   if (!out.length) throw new Error("No priced products found in the sheet.");
   return out;
@@ -70,8 +73,8 @@ export async function applyRows(rows: SheetRow[], hideMissing: boolean) {
     let added = 0, updated = 0;
     for (const [i, p] of rows.entries()) {
       if (before.has(p.id)) updated++; else added++;
-      await tx`insert into products (id, category, code, name, dealer_price, sheet_price, active, sort) values (${p.id}, ${p.category}, ${p.code}, ${p.name}, ${p.dealer}, ${p.sell}, true, ${i})
-        on conflict (id) do update set category = excluded.category, code = excluded.code, name = excluded.name, dealer_price = excluded.dealer_price, sheet_price = excluded.sheet_price, active = true, sort = excluded.sort`;
+      await tx`insert into products (id, category, code, name, dealer_price, sheet_price, image_url, active, sort) values (${p.id}, ${p.category}, ${p.code}, ${p.name}, ${p.dealer}, ${p.sell}, ${p.image || null}, true, ${i})
+        on conflict (id) do update set category = excluded.category, code = excluded.code, name = excluded.name, dealer_price = excluded.dealer_price, sheet_price = excluded.sheet_price, image_url = coalesce(excluded.image_url, products.image_url), active = true, sort = excluded.sort`;
     }
     let hidden = 0;
     if (hideMissing) {

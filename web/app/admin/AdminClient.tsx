@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
+import ImageCell from "./ImageCell";
 
-type Prod = { id: string; category: string; code: string; name: string; dealer_price: number; price_override: number | null; active: boolean; price: number };
+type Prod = { id: string; category: string; code: string; name: string; dealer_price: number; price_override: number | null; active: boolean; price: number; image: string };
 type Order = { id: number; reference: string; status: string; total: number; created_at: string; email: string; customer: string; delivery: string; notes: string; items: { name: string; code: string; quantity: number; unit_price: number }[] };
 type Cust = { id: number; name: string; email: string; phone: string; created_at: string; orders: number };
 const peso = (n: number) => "₱" + Math.round(n).toLocaleString("en-PH");
@@ -82,8 +83,9 @@ export default function AdminClient(props: { markup: number; categoryMarkup: Rec
         </div>
       </div>
       <input className="input" placeholder="Filter products…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: "100%", marginBottom: 10 }} />
-      <table className="t"><thead><tr><th>Item</th><th>Dealer</th><th>Selling price</th><th>Own price (override)</th><th>Shown</th></tr></thead><tbody>
+      <table className="t"><thead><tr><th>Photo</th><th>Item</th><th>Dealer</th><th>Selling price</th><th>Own price (override)</th><th>Shown</th></tr></thead><tbody>
         {products.filter((p) => !q || (p.name + p.code + p.category).toLowerCase().includes(q.toLowerCase())).map((p) => <tr key={p.id} style={{ opacity: p.active ? 1 : 0.5 }}>
+          <td><ImageCell id={p.id} name={p.name} initial={p.image} /></td>
           <td><b>{p.name}</b><br /><span className="muted" style={{ fontSize: 12 }}>{p.category}{p.code && " · " + p.code}</span></td>
           <td>{peso(p.dealer_price)}</td>
           <td><b>{peso(sell(p.dealer_price, p.price_override, mkFor(p.category)))}</b>{p.price_override != null && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}</td>
