@@ -35,8 +35,19 @@ table.t th{color:var(--fg3);font-size:12px;text-transform:uppercase;letter-spaci
 .b-awaiting_payment{background:#fef3c7;color:#92400e}.b-paid{background:#dcfce7;color:#166534}.b-processing{background:#e0f2fe;color:#075985}.b-shipped{background:#ede9fe;color:#5b21b6}.b-completed{background:#d1fae5;color:#065f46}.b-cancelled{background:#fee2e2;color:#991b1b}
 .ftr{background:var(--navy);color:#94a3b8;font-size:13px;padding:26px 0;margin-top:60px}
 .ftr .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-@media(max-width:700px){.brand span{display:none}.hdr-in{height:auto;padding:10px 0;flex-wrap:wrap}.nav{margin-left:0}}
+@media(max-width:700px){.brand span{display:none}}
 .sso{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none}
 .sso-g{background:#fff;color:#1f2937;border:1px solid #cbd5e1}.sso-g:hover{background:#f8fafc}
 .sso-f{background:#1877f2;color:#fff}.sso-f:hover{background:#166fe5}
 .sso-or{display:flex;align-items:center;gap:10px;color:var(--fg3);font-size:12px;margin-top:4px}.sso-or::before,.sso-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.nav-toggle{display:none;margin-left:auto;width:44px;height:44px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.06);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.nav-toggle span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;transition:transform .2s,opacity .2s}
+.nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.nav-mobile{flex-basis:100%;display:flex;flex-direction:column;gap:2px;padding:6px 0 14px}
+.nav-mobile a,.nav-mobile button{color:#e8edf5;font-size:16px;font-weight:600;padding:12px 14px;border-radius:10px;text-decoration:none;background:none;border:0;text-align:left;cursor:pointer}
+.nav-mobile a:hover,.nav-mobile button:hover{background:rgba(255,255,255,.08)}
+.nav-mobile .nav-store{background:rgba(249,115,22,.16);color:#fdba74}
+.nav-mobile .cta{background:var(--accent);color:#fff;text-align:center}
+@media(max-width:1024px){.nav-desktop{display:none}.nav-toggle{display:flex}.hdr-in{flex-wrap:wrap;height:auto;min-height:64px;padding:10px 0}}

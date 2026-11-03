@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const b = form ? Object.fromEntries(form.entries()) : await req.json().catch(() => ({}));
   const items = form ? JSON.parse(String(form.get("items") || "[]")) : b.items;
   const name = str(b.deliveryName, 160), phone = str(b.deliveryPhone, 40), address = str(b.deliveryAddress, 600);
-  const email = str(b.deliveryEmail, 320).toLowerCase();
+  const email = str(b.deliveryEmail, 320)?.toLowerCase() ?? null;
   const notes = typeof b.notes === "string" ? b.notes.trim().slice(0, 1000) : null;
   const paymentMethod = str(b.paymentMethod, 40) || "bank_transfer";
   if (!name || !phone || !email || !address) return bad("Enter your name, mobile number, email and address.");

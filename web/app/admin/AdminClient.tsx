@@ -13,16 +13,22 @@ async function api(url: string, method: string, body: unknown) {
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "Save failed");
 }
 
-export default function AdminClient(props: { markup: number; products: Prod[]; orders: Order[]; customers: Cust[] }) {
+export default function AdminClient(props: { markup: number; categoryMarkup: Record<string, number>; products: Prod[]; orders: Order[]; customers: Cust[] }) {
   const [tab, setTab] = useState<"orders" | "products" | "customers">("orders");
   const [markup, setMarkup] = useState(props.markup);
   const [products, setProducts] = useState(props.products);
   const [orders, setOrders] = useState(props.orders);
   const [msg, setMsg] = useState(""); const [q, setQ] = useState("");
+  const [catMk, setCatMk] = useState<Record<string, number>>(props.categoryMarkup);
+  const [bulkCat, setBulkCat] = useState(""); const [bulkPct, setBulkPct] = useState("");
+  const cats = Array.from(new Set(products.map((p) => p.category)));
+  const mkFor = (c: string) => catMk[c] ?? markup;
+  async function bulk(body: Record<string, unknown>, done: string) { try { await api("/api/admin/pricing", "POST", body); flash(done); setTimeout(() => location.reload(), 600); } catch (e) { flash((e as Error).message); } }
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
   const pending = orders.filter((o) => o.status === "awaiting_payment").length;
 
   async function saveMarkup() { try { await api("/api/admin/settings", "PUT", { markupPercent: markup }); flash("Markup saved ✓"); } catch (e) { flash((e as Error).message); } }
+  async function saveCatMarkup(c: string, raw: string) { const v = raw.trim() === "" ? null : Number(raw); try { await api("/api/admin/pricing", "POST", { action: "categoryMarkup", category: c, markupPercent: v }); setCatMk((m) => { const x = { ...m }; if (v === null) delete x[c]; else x[c] = v; return x; }); flash(`${c} markup saved ✓`); } catch (e) { flash((e as Error).message); } }
   async function savePrice(p: Prod, raw: string) {
     const v = raw.trim() === "" ? null : Number(raw.replace(/[₱,\s]/g, ""));
     if (v !== null && !Number.isFinite(v)) return flash("Not a number");
@@ -55,12 +61,32 @@ export default function AdminClient(props: { markup: number; products: Prod[]; o
         <button type="button" className="btn btn-primary" onClick={saveMarkup}>Save markup</button>
         <span className="muted" style={{ fontSize: 13 }}>Applies to every item without its own price. Prices round up to the nearest ₱5.</span>
       </div>
+      <div style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 12, marginBottom: 14 }}>
+        <b>Markup for ALL products</b>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
+          <button type="button" className="btn btn-ghost" onClick={() => { if (confirm(`Set ${markup}% on every product and remove all category markups and custom prices?`)) bulk({ action: "allMarkup", markupPercent: markup, applyToAll: true }, "All products now use " + markup + "% ✓"); }}>Apply {markup}% to every product (reset custom prices)</button>
+          <button type="button" className="btn btn-ghost" onClick={() => { if (confirm("Remove every custom price?")) bulk({ action: "clearOverrides" }, "Custom prices cleared ✓"); }}>Clear all custom prices</button>
+          <button type="button" className="btn btn-ghost" onClick={() => bulk({ action: "showAll", active: true }, "All products shown ✓")}>Show all products</button>
+        </div>
+        <b style={{ display: "block", marginTop: 14 }}>Markup by category</b>
+        <p className="muted" style={{ fontSize: 12, margin: "4px 0 8px" }}>Leave blank to use the main markup ({markup}%).</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(210px,1fr))", gap: 8 }}>
+          {cats.map((c) => <label key={c} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, fontSize: 13, background: "#f8fafc", borderRadius: 8, padding: "6px 10px" }}>{c}<span><input className="input" style={{ width: 70, padding: 6 }} type="number" min={0} max={500} placeholder={String(markup)} defaultValue={catMk[c] ?? ""} onBlur={(e) => { if (e.target.value !== String(catMk[c] ?? "")) saveCatMarkup(c, e.target.value); }} aria-label={"Markup for " + c} /> %</span></label>)}
+        </div>
+        <b style={{ display: "block", marginTop: 14 }}>Update dealer prices (supplier price change)</b>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
+          <select className="input" value={bulkCat} onChange={(e) => setBulkCat(e.target.value)} aria-label="Category to adjust"><option value="">All categories</option>{cats.map((c) => <option key={c}>{c}</option>)}</select>
+          <input className="input" style={{ width: 90 }} type="number" placeholder="e.g. 5" value={bulkPct} onChange={(e) => setBulkPct(e.target.value)} aria-label="Percent change" /> %
+          <button type="button" className="btn btn-primary" disabled={!bulkPct} onClick={() => { if (confirm(`Change dealer prices of ${bulkCat || "ALL categories"} by ${bulkPct}%?`)) bulk({ action: "adjustAll", percent: Number(bulkPct), category: bulkCat || undefined }, "Dealer prices updated ✓"); }}>Apply change</button>
+          <span className="muted" style={{ fontSize: 12 }}>Use a negative number to lower prices.</span>
+        </div>
+      </div>
       <input className="input" placeholder="Filter products…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: "100%", marginBottom: 10 }} />
       <table className="t"><thead><tr><th>Item</th><th>Dealer</th><th>Selling price</th><th>Own price (override)</th><th>Shown</th></tr></thead><tbody>
         {products.filter((p) => !q || (p.name + p.code + p.category).toLowerCase().includes(q.toLowerCase())).map((p) => <tr key={p.id} style={{ opacity: p.active ? 1 : 0.5 }}>
           <td><b>{p.name}</b><br /><span className="muted" style={{ fontSize: 12 }}>{p.category}{p.code && " · " + p.code}</span></td>
           <td>{peso(p.dealer_price)}</td>
-          <td><b>{peso(sell(p.dealer_price, p.price_override, markup))}</b>{p.price_override != null && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}</td>
+          <td><b>{peso(sell(p.dealer_price, p.price_override, mkFor(p.category)))}</b>{p.price_override != null && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}</td>
           <td><input className="input" style={{ width: 120 }} placeholder="auto" defaultValue={p.price_override ?? ""} onBlur={(e) => { const v = e.target.value; if (v !== String(p.price_override ?? "")) savePrice(p, v); }} aria-label={"Own price for " + p.name} /></td>
           <td><input type="checkbox" checked={p.active} onChange={() => toggle(p)} aria-label={"Show " + p.name + " in store"} /></td></tr>)}
       </tbody></table>
