@@ -29,8 +29,8 @@ export async function listProducts(includeInactive = false): Promise<Product[]> 
   const sheetCfg = await getSetting<{ priceSource: string }>("sheet", { priceSource: "markup" });
   const useSheet = sheetCfg.priceSource === "sheet";
   const rows = includeInactive
-    ? await sql`select * from products order by active desc, sort`
-    : await sql`select * from products where active order by sort`;
+    ? await sql`select id, category, code, name, dealer_price, price_override, active, sort, image_url, sheet_price, description, features, specs_url from products order by active desc, sort`
+    : await sql`select id, category, code, name, dealer_price, price_override, active, sort, image_url, sheet_price, description, features, specs_url from products where active order by sort`;
   return rows.map((r) => {
     const dealer = Number(r.dealer_price);
     const override = r.price_override == null ? null : Number(r.price_override);
