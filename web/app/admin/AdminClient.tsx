@@ -2,7 +2,7 @@
 import { useState } from "react";
 import ImageCell from "./ImageCell";
 
-type Prod = { id: string; category: string; code: string; name: string; dealer_price: number; price_override: number | null; active: boolean; price: number; image: string };
+type Prod = { id: string; category: string; code: string; name: string; dealer_price: number; price_override: number | null; active: boolean; price: number; image: string; description: string; features: string; specs_url: string };
 type Order = { id: number; reference: string; status: string; total: number; created_at: string; email: string; customer: string; delivery: string; notes: string; items: { name: string; code: string; quantity: number; unit_price: number }[] };
 type Cust = { id: number; name: string; email: string; phone: string; created_at: string; orders: number };
 const peso = (n: number) => "₱" + Math.round(n).toLocaleString("en-PH");
@@ -86,7 +86,7 @@ export default function AdminClient(props: { markup: number; categoryMarkup: Rec
       <table className="t"><thead><tr><th>Photo</th><th>Item</th><th>Dealer</th><th>Selling price</th><th>Own price (override)</th><th>Shown</th></tr></thead><tbody>
         {products.filter((p) => !q || (p.name + p.code + p.category).toLowerCase().includes(q.toLowerCase())).map((p) => <tr key={p.id} style={{ opacity: p.active ? 1 : 0.5 }}>
           <td><ImageCell id={p.id} name={p.name} initial={p.image} /></td>
-          <td><b>{p.name}</b><br /><span className="muted" style={{ fontSize: 12 }}>{p.category}{p.code && " · " + p.code}</span></td>
+          <td><b>{p.name}</b><br /><span className="muted" style={{ fontSize: 12 }}>{p.category}{p.code && " · " + p.code}</span><DetailsEditor p={p} /></td>
           <td>{peso(p.dealer_price)}</td>
           <td><b>{peso(sell(p.dealer_price, p.price_override, mkFor(p.category)))}</b>{p.price_override != null && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}</td>
           <td><input className="input" style={{ width: 120 }} placeholder="auto" defaultValue={p.price_override ?? ""} onBlur={(e) => { const v = e.target.value; if (v !== String(p.price_override ?? "")) savePrice(p, v); }} aria-label={"Own price for " + p.name} /></td>
@@ -98,6 +98,27 @@ export default function AdminClient(props: { markup: number; categoryMarkup: Rec
       {!props.customers.length ? <p className="muted">No customer accounts yet.</p> : <table className="t"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Joined</th><th>Orders</th></tr></thead><tbody>
         {props.customers.map((c) => <tr key={c.id}><td>{c.name}</td><td>{c.email}</td><td>{c.phone}</td><td>{new Date(c.created_at).toLocaleDateString("en-PH")}</td><td>{c.orders}</td></tr>)}
       </tbody></table>}
+    </div>}
+  </div>;
+}
+
+function DetailsEditor({ p }: { p: Prod }) {
+  const [open, setOpen] = useState(false);
+  const [d, setD] = useState({ description: p.description, features: p.features, specsUrl: p.specs_url });
+  const [msg, setMsg] = useState("");
+  async function save() {
+    setMsg("Saving…");
+    const r = await fetch(`/api/admin/products/${p.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(d) });
+    setMsg(r.ok ? "Saved ✓" : ((await r.json().catch(() => ({}))).error || "Save failed"));
+  }
+  const filled = !!(d.description || d.features || d.specsUrl);
+  return <div style={{ marginTop: 6 }}>
+    <button type="button" className="btn btn-ghost" style={{ padding: "3px 10px", fontSize: 12 }} onClick={() => setOpen(!open)}>{open ? "Close details" : (filled ? "✎ Edit details" : "+ Description & specs")}</button>
+    {open && <div style={{ display: "grid", gap: 6, marginTop: 6, minWidth: 280 }}>
+      <label className="field" style={{ fontSize: 12 }}>Description<textarea rows={3} value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} placeholder={p.name} /></label>
+      <label className="field" style={{ fontSize: 12 }}>Technical features (one per line)<textarea rows={5} value={d.features} onChange={(e) => setD({ ...d, features: e.target.value })} placeholder={"EN 361 / EN 813 certified\nWeight: 1.9 kg\nSizes: S-M"} /></label>
+      <label className="field" style={{ fontSize: 12 }}>Technical specs link (PDF / datasheet)<input type="url" value={d.specsUrl} onChange={(e) => setD({ ...d, specsUrl: e.target.value })} placeholder="https://…" /></label>
+      <div><button type="button" className="btn btn-primary" style={{ padding: "5px 12px", fontSize: 12 }} onClick={save}>Save details</button> <span className="muted" style={{ fontSize: 12 }}>{msg}</span></div>
     </div>}
   </div>;
 }

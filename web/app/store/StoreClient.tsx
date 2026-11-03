@@ -3,7 +3,7 @@ import "./store.css";
 import { useEffect, useMemo, useState } from "react";
 import ShareBar from "@/components/ShareBar";
 
-type P = { id: string; category: string; code: string; name: string; price: number; image?: string };
+type P = { id: string; category: string; code: string; name: string; price: number; image?: string; description?: string; features?: string; specs_url?: string };
 type Bank = { accountName: string; accountNumber: string; swift: string; bank: string };
 const peso = (n: number) => "₱" + Math.round(n).toLocaleString("en-PH");
 
@@ -72,7 +72,7 @@ export default function StoreClient({ products, user, bank }: { products: P[]; u
       {modal.kind === "spec" && <>
         {modal.p.image && <img src={modal.p.image} alt={modal.p.name} style={{ width: "100%", maxHeight: 320, objectFit: "contain", background: "#f8fafc", borderRadius: 12, marginBottom: 10 }} />}<div className="eyebrow">{modal.p.category}</div><h2>{modal.p.name}</h2><div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><div className="big">{peso(modal.p.price)}</div><ShareBar compact path={`/store/p/${modal.p.id}`} title={modal.p.name} price={peso(modal.p.price)} /></div>
         <h4>Product Specification</h4>
-        <table className="t"><tbody><tr><th>Item Code</th><td>{modal.p.code || "—"}</td></tr><tr><th>Category</th><td>{modal.p.category}</td></tr><tr><th>Description</th><td>{modal.p.name}</td></tr><tr><th>Unit Price</th><td>{peso(modal.p.price)} (PHP)</td></tr><tr><th>Availability</th><td>Subject to stock confirmation</td></tr></tbody></table>
+        <table className="t"><tbody><tr><th>Item Code</th><td>{modal.p.code || "—"}</td></tr><tr><th>Category</th><td>{modal.p.category}</td></tr><tr><th>Description</th><td style={{ whiteSpace: "pre-line" }}>{modal.p.description || modal.p.name}</td></tr>{modal.p.features && <tr><th>Technical features</th><td><ul style={{ margin: 0, paddingLeft: 18 }}>{modal.p.features.split("\n").filter((l) => l.trim()).map((l, i) => <li key={i}>{l.replace(/^[-•*]\s*/, "")}</li>)}</ul></td></tr>}{modal.p.specs_url && <tr><th>Technical specs</th><td><a href={modal.p.specs_url} target="_blank" rel="noopener">View technical specs ↗</a></td></tr>}<tr><th>Unit Price</th><td>{peso(modal.p.price)} (PHP)</td></tr><tr><th>Availability</th><td>Subject to stock confirmation</td></tr></tbody></table>
         <a href={`/store/p/${modal.p.id}`} className="muted" style={{ fontSize: 12 }}>Open product page ↗</a>
         <BankBox bank={bank} />
         <div className="btns" style={{ marginTop: 16 }}><button type="button" className="buy" onClick={() => { setCart({ [modal.p.id]: 1 }); checkout({ [modal.p.id]: 1 }); }}>BUY NOW</button><button type="button" className="add" onClick={() => { add(modal.p.id, 1); setModal(null); }}>ADD TO CART</button></div>

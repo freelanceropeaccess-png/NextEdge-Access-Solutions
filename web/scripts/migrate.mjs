@@ -35,6 +35,9 @@ await sql`alter table orders add column if not exists payment_slip_type text`;
 await sql`alter table orders add column if not exists payment_slip_data text`;
 await sql`alter table products add column if not exists sheet_price numeric(12,2)`;
 await sql`alter table products add column if not exists image_url text`;
+await sql`alter table products add column if not exists description text`;
+await sql`alter table products add column if not exists features text`;
+await sql`alter table products add column if not exists specs_url text`;
 await sql`create table if not exists product_images (id text primary key, mime text not null, data bytea not null, created_at timestamptz not null default now())`;
 await sql`insert into settings (key, value) values ('markup_percent', '20') on conflict (key) do nothing`;
 

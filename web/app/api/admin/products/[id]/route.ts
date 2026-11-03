@@ -15,6 +15,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!Number.isFinite(v) || v < 0 || v > 10_000_000) return bad("Enter a valid dealer price.");
     await sql`update products set dealer_price = ${v} where id = ${id}`;
   }
+  if ("description" in b) await sql`update products set description = ${String(b.description ?? "").slice(0, 4000) || null} where id = ${id}`;
+  if ("features" in b) await sql`update products set features = ${String(b.features ?? "").slice(0, 8000) || null} where id = ${id}`;
+  if ("specsUrl" in b) {
+    const u = String(b.specsUrl ?? "").trim();
+    if (u && !/^https?:\/\/\S+$/i.test(u) && !u.startsWith("/")) return bad("Technical specs link must start with https://");
+    await sql`update products set specs_url = ${u.slice(0, 1000) || null} where id = ${id}`;
+  }
   if ("active" in b) await sql`update products set active = ${Boolean(b.active)} where id = ${id}`;
   return ok();
 }

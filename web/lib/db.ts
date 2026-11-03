@@ -8,7 +8,7 @@ export const sql = g.__neasSql ?? postgres(url, {
 });
 if (process.env.NODE_ENV !== "production") g.__neasSql = sql;
 
-export type Product = { id: string; category: string; code: string; name: string; dealer_price: number; price_override: number | null; active: boolean; price: number; image: string };
+export type Product = { id: string; category: string; code: string; name: string; dealer_price: number; price_override: number | null; active: boolean; price: number; image: string; description: string; features: string; specs_url: string };
 
 export async function getMarkup(): Promise<number> {
   const rows = await sql`select value from settings where key = 'markup_percent'`;
@@ -34,6 +34,6 @@ export async function listProducts(includeInactive = false): Promise<Product[]> 
   return rows.map((r) => {
     const dealer = Number(r.dealer_price);
     const override = r.price_override == null ? null : Number(r.price_override);
-    return { id: r.id, category: r.category, code: r.code, name: r.name, dealer_price: dealer, price_override: override, active: r.active, image: r.image_url ?? "", price: useSheet && r.sheet_price != null && override == null ? Math.ceil(Number(r.sheet_price)) : sellPrice(dealer, override, catMarkup[r.category] ?? markup) };
+    return { id: r.id, category: r.category, code: r.code, name: r.name, dealer_price: dealer, price_override: override, active: r.active, image: r.image_url ?? "", description: r.description ?? "", features: r.features ?? "", specs_url: r.specs_url ?? "", price: useSheet && r.sheet_price != null && override == null ? Math.ceil(Number(r.sheet_price)) : sellPrice(dealer, override, catMarkup[r.category] ?? markup) };
   });
 }

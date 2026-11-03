@@ -39,6 +39,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <div style={{ fontSize: 30, fontWeight: 800, margin: "8px 0 14px" }}>{peso(p.price)}</div>
         <a className="btn btn-primary" href={`/store?p=${p.id}`} style={{ background: "#15803d" }}>Buy now in Online Store</a>
         <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>Prices in PHP. Payment by bank transfer to Security Bank. Stock confirmed after payment.</p>
+        {p.description && <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>{p.description}</p>}
+        {p.features && <><h3 style={{ fontSize: 15, margin: "14px 0 6px" }}>Technical features</h3><ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>{p.features.split("\n").filter((l) => l.trim()).map((l, i) => <li key={i}>{l.replace(/^[-•*]\s*/, "")}</li>)}</ul></>}
+        {p.specs_url && <p><a className="btn btn-ghost" href={p.specs_url} target="_blank" rel="noopener">📄 View technical specs ↗</a></p>}
         <ShareBar path={`/store/p/${p.id}`} title={p.name} price={peso(p.price)} />
       </div>
     </div>
