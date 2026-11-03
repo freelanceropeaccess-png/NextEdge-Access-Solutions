@@ -33,6 +33,7 @@ await sql`alter table orders add column if not exists payment_method text not nu
 await sql`alter table orders add column if not exists payment_slip_name text`;
 await sql`alter table orders add column if not exists payment_slip_type text`;
 await sql`alter table orders add column if not exists payment_slip_data text`;
+await sql`alter table products add column if not exists sheet_price numeric(12,2)`;
 await sql`insert into settings (key, value) values ('markup_percent', '20') on conflict (key) do nothing`;
 
 const [{ count }] = await sql`select count(*)::int as count from products`;
