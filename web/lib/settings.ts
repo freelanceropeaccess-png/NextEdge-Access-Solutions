@@ -2,7 +2,7 @@ import { sql } from "./db";
 
 export type Seo = {
   title: string; description: string; keywords: string; ogImage: string; canonical: string;
-  googleVerification: string; bingVerification: string; gaMeasurementId: string; robotsIndex: boolean;
+  googleVerification: string; bingVerification: string; semrushUrl?: string; extraMeta?: string; gaMeasurementId: string; robotsIndex: boolean;
 };
 export type Social = {
   googleBusiness: string; googleMaps: string; googleReview: string; facebook: string; instagram: string; linkedin: string;

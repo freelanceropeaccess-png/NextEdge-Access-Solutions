@@ -17,6 +17,8 @@ export async function PUT(req: Request) {
       canonical: cleanUrl(s.canonical) || DEFAULT_SEO.canonical,
       googleVerification: cleanText(s.googleVerification, 120).replace(/[^A-Za-z0-9_\-]/g, ""),
       bingVerification: cleanText(s.bingVerification, 120).replace(/[^A-Za-z0-9_\-]/g, ""),
+      semrushUrl: /^https:\/\/(www\.)?semrush\.com\//i.test(String(s.semrushUrl ?? "").trim()) ? String(s.semrushUrl).trim().slice(0, 500) : "",
+      extraMeta: String(s.extraMeta ?? "").split("\n").map((l) => l.trim()).filter((l) => /^[A-Za-z0-9_.:\-]{1,60}=[^<>"]{1,200}$/.test(l)).slice(0, 10).join("\n"),
       gaMeasurementId: ga,
       robotsIndex: s.robotsIndex !== false,
     });

@@ -34,6 +34,7 @@ export async function renderHomepage(): Promise<string> {
     `<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(seo.title)}"><meta name="twitter:description" content="${esc(seo.description)}"><meta name="twitter:image" content="${esc(ogImage)}">`,
     seo.googleVerification && `<meta name="google-site-verification" content="${esc(seo.googleVerification)}">`,
     seo.bingVerification && `<meta name="msvalidate.01" content="${esc(seo.bingVerification)}">`,
+    ...String(seo.extraMeta ?? "").split("\n").filter((l) => l.includes("=")).map((l) => { const i = l.indexOf("="); return `<meta name="${esc(l.slice(0, i).trim())}" content="${esc(l.slice(i + 1).trim())}">`; }),
     `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`,
     seo.gaMeasurementId && `<script async src="https://www.googletagmanager.com/gtag/js?id=${esc(seo.gaMeasurementId)}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${esc(seo.gaMeasurementId)}');</script>`,
   ].filter(Boolean).join("\n");

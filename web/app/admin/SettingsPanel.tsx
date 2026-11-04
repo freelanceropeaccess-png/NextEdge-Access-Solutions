@@ -49,6 +49,12 @@ export default function SettingsPanel(props: { seo: Seo; social: Social; busines
       <Field label="Google Search Console verification code" hint="Search Console → Add property → HTML tag → copy only the content=&quot;…&quot; value."><input {...S("googleVerification")} /></Field>
       <Field label="Google Analytics 4 Measurement ID" hint="Looks like G-XXXXXXXXXX. Leave blank to turn analytics off."><input placeholder="G-XXXXXXXXXX" {...S("gaMeasurementId")} /></Field>
       <Field label="Bing Webmaster verification code"><input {...S("bingVerification")} /></Field>
+      <div style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 12, margin: "6px 0 12px", background: "#fff7ed" }}>
+        <b>Semrush</b>
+        <Field label="Semrush report link" hint="Paste your Semrush On-Page SEO Checker / Site Audit link. Opens from here in one click (you stay signed in to Semrush in your browser)."><input type="url" placeholder="https://www.semrush.com/on-page-seo-checker/…" {...S("semrushUrl")} /></Field>
+        {seo.semrushUrl && <a className="btn btn-ghost" href={seo.semrushUrl} target="_blank" rel="noopener">Open Semrush report ↗</a>}
+        <Field label="Other verification tags (one per line, name=code)" hint="For Semrush, Yandex, Pinterest, Facebook domain verification, etc. Example: facebook-domain-verification=abc123"><textarea rows={3} placeholder="facebook-domain-verification=abc123" {...S("extraMeta")} /></Field>
+      </div>
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14, margin: "6px 0 14px" }}><input type="checkbox" checked={seo.robotsIndex} onChange={(e) => setSeo({ ...seo, robotsIndex: e.target.checked })} /> Allow Google and other search engines to list the website</label>
       <p className="muted" style={{ fontSize: 12 }}>Also live automatically: <a href="/sitemap.xml" target="_blank">sitemap.xml</a> and <a href="/robots.txt" target="_blank">robots.txt</a>. Submit the sitemap in Google Search Console.</p>
       <button type="button" className="btn btn-primary" disabled={busy} onClick={() => save({ seo })}>Save SEO</button>

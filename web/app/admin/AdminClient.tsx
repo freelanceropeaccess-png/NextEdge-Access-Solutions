@@ -83,10 +83,11 @@ export default function AdminClient(props: { markup: number; categoryMarkup: Rec
         </div>
       </div>
       <input className="input" placeholder="Filter products…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: "100%", marginBottom: 10 }} />
-      <table className="t"><thead><tr><th>Photo</th><th>Item</th><th>Dealer</th><th>Selling price</th><th>Own price (override)</th><th>Shown</th></tr></thead><tbody>
+      <table className="t"><thead><tr><th>Photo</th><th>Item</th><th>Details &amp; specs</th><th>Dealer</th><th>Selling price</th><th>Own price (override)</th><th>Shown</th></tr></thead><tbody>
         {products.filter((p) => !q || (p.name + p.code + p.category).toLowerCase().includes(q.toLowerCase())).map((p) => <tr key={p.id} style={{ opacity: p.active ? 1 : 0.5 }}>
           <td><ImageCell id={p.id} name={p.name} initial={p.image} /></td>
-          <td><b>{p.name}</b><br /><span className="muted" style={{ fontSize: 12 }}>{p.category}{p.code && " · " + p.code}</span><DetailsEditor p={p} /></td>
+          <td><b>{p.name}</b><br /><span className="muted" style={{ fontSize: 12 }}>{p.category}{p.code && " · " + p.code}</span></td>
+          <td style={{ minWidth: 300 }}><DetailsEditor p={p} /></td>
           <td>{peso(p.dealer_price)}</td>
           <td><b>{peso(sell(p.dealer_price, p.price_override, mkFor(p.category)))}</b>{p.price_override != null && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}</td>
           <td><input className="input" style={{ width: 120 }} placeholder="auto" defaultValue={p.price_override ?? ""} onBlur={(e) => { const v = e.target.value; if (v !== String(p.price_override ?? "")) savePrice(p, v); }} aria-label={"Own price for " + p.name} /></td>
@@ -112,8 +113,9 @@ function DetailsEditor({ p }: { p: Prod }) {
     setMsg(r.ok ? "Saved ✓" : ((await r.json().catch(() => ({}))).error || "Save failed"));
   }
   const filled = !!(d.description || d.features || d.specsUrl);
-  return <div style={{ marginTop: 6 }}>
+  return <div>
     <button type="button" className="btn btn-ghost" style={{ padding: "3px 10px", fontSize: 12 }} onClick={() => setOpen(!open)}>{open ? "Close details" : (filled ? "✎ Edit details" : "+ Description & specs")}</button>
+    {!open && filled && <div className="muted" style={{ fontSize: 12, marginTop: 4, maxWidth: 300 }}>{d.description && <div>📝 {d.description.slice(0, 70)}{d.description.length > 70 ? "…" : ""}</div>}{d.features && <div>✔ {d.features.split("\n").filter((l) => l.trim()).length} technical features</div>}{d.specsUrl && <div>📄 Specs link set</div>}</div>}
     {open && <div style={{ display: "grid", gap: 6, marginTop: 6, minWidth: 280 }}>
       <label className="field" style={{ fontSize: 12 }}>Description<textarea rows={3} value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} placeholder={p.name} /></label>
       <label className="field" style={{ fontSize: 12 }}>Technical features (one per line)<textarea rows={5} value={d.features} onChange={(e) => setD({ ...d, features: e.target.value })} placeholder={"EN 361 / EN 813 certified\nWeight: 1.9 kg\nSizes: S-M"} /></label>
