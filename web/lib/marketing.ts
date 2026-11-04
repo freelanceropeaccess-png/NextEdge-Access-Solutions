@@ -59,6 +59,7 @@ export const AI_TASKS: Record<string, string> = {
   taglish: "a 45-second Taglish (Tagalog-English) voice-over script, natural and conversational",
   campaign: "a 4-week promotional campaign plan: objective, key message, weekly themes, post ideas per platform, and KPIs",
   repurpose: "versions of the given content for Facebook, Instagram, LinkedIn and TikTok",
+  reply: "a short, friendly customer-service reply (2-4 sentences) to the customer message below, in the same language they used (English, Tagalog or Taglish). Answer what you can, invite them to WhatsApp +63 991 426 5886 for quotes, and never invent prices or availability",
   schedule: "a recommended 2-week publishing schedule (day, time in Philippine time, platform, post idea) with reasons",
 };
 

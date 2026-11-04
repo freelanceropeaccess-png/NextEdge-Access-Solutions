@@ -102,7 +102,7 @@ export default function MarketingClient() {
         {mod === "dashboard" && <Dashboard s={s} go={go} openCompose={openCompose} can={can} run={run} />}
         {mod === "compose" && <Compose s={s} can={can} post={editing} setPost={setEditing} run={run} />}
         {mod === "calendar" && <Calendar posts={posts} can={can} run={run} openCompose={openCompose} />}
-        {mod === "inbox" && <Inbox s={s} go={go} />}
+        {mod === "inbox" && <Inbox s={s} go={go} can={can} />}
         {mod === "analytics" && <Analytics s={s} />}
         {mod === "brands" && <Brands s={s} can={can} run={run} />}
         {mod === "accounts" && <Accounts s={s} can={can} />}
@@ -300,11 +300,62 @@ function Calendar({ posts, can, run, openCompose }: { posts: Post[]; can: Can; r
   </>;
 }
 
-function Inbox({ s, go }: { s: State; go: (m: Mod) => void }) {
-  const ready = s.platforms.filter((p) => p.ready);
-  return <><H t="Unified inbox" sub="Messages, comments, mentions and reviews from your connected accounts." />
-    <div className="mk-card"><Empty icon="✉" title="No accounts connected yet">The inbox reads messages directly from Facebook, Instagram, LinkedIn and Google Business through their official APIs. It stays empty until an account is connected — nothing here is simulated.{ready.length === 0 && <><br /><br /><button type="button" className="mk-btn" onClick={() => go("accounts")}>See what&apos;s needed →</button></>}</Empty></div>
-    <div className="mk-card"><div className="mk-label">Ready when accounts connect</div><ul className="mk-ul"><li>Conversation history per customer</li><li>AI suggested replies in your brand voice</li><li>Sentiment and priority tags</li><li>Assign to a team member, internal notes, response tracking</li></ul></div></>;
+type Thread = { key: string; kind: "message" | "comment"; accountId: number; page: string; target: string; who: string; preview: string; at: string; unread: boolean; messages: { id: string; from: string; text: string; at: string; mine: boolean }[]; postText?: string; link?: string; status?: string; assignedTo?: number | null; note?: string | null };
+
+function Inbox({ s, go, can }: { s: State; go: (m: Mod) => void; can: Can }) {
+  const connected = (s.accounts ?? []).some((a) => a.platform === "facebook" && a.status === "ok");
+  const [data, setData] = useState<{ threads: Thread[]; errors: string[] } | null>(null);
+  const [loading, setLoading] = useState(false); const [sel, setSel] = useState(""); const [filter, setFilter] = useState<"open" | "mine" | "done" | "all">("open");
+  const [reply, setReply] = useState(""); const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false); const [note, setNote] = useState("");
+  const load = useCallback(async () => { setLoading(true); try { setData(await call({ action: "inbox" })); } catch (e) { setMsg((e as Error).message); } setLoading(false); }, []);
+  useEffect(() => { if (connected) load(); }, [connected, load]);
+  const threads = (data?.threads ?? []).filter((t) => filter === "all" || (filter === "done" ? t.status === "done" : filter === "mine" ? t.assignedTo === s.me.id && t.status !== "done" : t.status !== "done"));
+  const t = (data?.threads ?? []).find((x) => x.key === sel) ?? null;
+  useEffect(() => { setNote(t?.note ?? ""); setReply(""); setMsg(""); }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
+  async function meta(patch: { status?: string; assignedTo?: number | null; note?: string }) {
+    if (!t) return; const body = { action: "inboxMeta", key: t.key, status: patch.status ?? t.status ?? "open", assignedTo: "assignedTo" in patch ? patch.assignedTo : t.assignedTo ?? null, note: patch.note ?? t.note ?? "" };
+    try { await call(body); setData((d) => d && { ...d, threads: d.threads.map((x) => x.key === t.key ? { ...x, status: body.status, assignedTo: body.assignedTo ?? null, note: body.note } : x) }); setMsg("Saved ✓"); } catch (e) { setMsg((e as Error).message); }
+  }
+  async function suggest() {
+    if (!t) return; setBusy(true); setMsg("");
+    const last = [...t.messages].reverse().find((m) => !m.mine)?.text ?? t.preview;
+    try { const r = await call({ action: "ai", task: "reply", topic: `Customer (${t.kind === "comment" ? "Facebook comment" : "Messenger"}): ${last}` }); setReply(String(r.text).trim()); } catch (e) { setMsg((e as Error).message); }
+    setBusy(false);
+  }
+  async function send() {
+    if (!t || !reply.trim()) return; setBusy(true); setMsg("");
+    try { await call({ action: "inboxReply", accountId: t.accountId, kind: t.kind, target: t.target, text: reply }); setMsg("Sent ✓"); setReply(""); await meta({ status: "done" }); await load(); } catch (e) { setMsg((e as Error).message); }
+    setBusy(false);
+  }
+  if (!connected) return <><H t="Unified inbox" sub="Messenger chats and comments from your Facebook Page." />
+    <div className="mk-card"><Empty icon="✉" title="Connect your Facebook Page first">The inbox reads messages directly from Facebook. Nothing here is simulated.<br /><br /><button type="button" className="mk-btn" onClick={() => go("accounts")}>Go to Social Accounts →</button></Empty></div></>;
+  return <><H t="Unified inbox" sub="Messenger chats and comments on your recent Page posts, live from Facebook.">
+    {(["open", "mine", "done", "all"] as const).map((f) => <button key={f} type="button" className={"mk-btn sm" + (filter === f ? "" : " ghost")} onClick={() => setFilter(f)}>{{ open: "Open", mine: "Assigned to me", done: "Done", all: "All" }[f]}</button>)}
+    <button type="button" className="mk-btn sm ghost" onClick={load} disabled={loading}>{loading ? "Loading…" : "↻ Refresh"}</button>
+  </H>
+    {(data?.errors ?? []).length > 0 && <div className="mk-note">{data!.errors.map((e, i) => <div key={i}>⚠ {e}</div>)}<div style={{ marginTop: 6 }}>If this says a permission is missing: in your Meta app's Facebook Login for Business configuration, add <code>pages_messaging</code>, <code>pages_read_user_content</code> and <code>pages_manage_engagement</code>, then click Reconnect on Social Accounts.</div></div>}
+    <div className="mk-inbox">
+      <div className="mk-card mk-ilist">{!data && loading && <p className="mk-mini">Loading conversations…</p>}
+        {threads.map((x) => <button key={x.key} type="button" className={"mk-ithread" + (x.key === sel ? " sel" : "")} onClick={() => setSel(x.key)}>
+          <div className="mk-row between"><b>{x.who}</b><small>{new Date(x.at).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</small></div>
+          <div className="mk-mini" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{x.kind === "comment" ? "💬 " : "✉ "}{x.preview}</div>
+          <div className="mk-row" style={{ gap: 4 }}>{x.unread && x.status !== "done" && <span className="mk-pill st-pending">Needs reply</span>}{x.status === "done" && <span className="mk-pill st-published">Done</span>}{x.assignedTo && <span className="mk-pill">{s.team.find((m) => m.id === x.assignedTo)?.name ?? "Assigned"}</span>}</div>
+        </button>)}
+        {data && !threads.length && <Empty icon="✓" title="Nothing here">No conversations in this view.</Empty>}
+      </div>
+      <div className="mk-card">{!t ? <Empty icon="✉" title="Pick a conversation">Messages and comments appear on the left.</Empty> : <>
+        <div className="mk-row between"><div><b>{t.who}</b><div className="mk-mini">{t.kind === "comment" ? "Comment on your post" : "Messenger"} · {t.page}{t.link && <> · <a className="mk-link" href={t.link} target="_blank" rel="noopener">Open on Facebook ↗</a></>}</div></div>
+          <div className="mk-row">{can("editor") && <select className="mk-sel" value={t.assignedTo ?? ""} onChange={(e) => meta({ assignedTo: e.target.value ? Number(e.target.value) : null })}><option value="">Unassigned</option>{s.team.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>}
+            {can("editor") && <button type="button" className="mk-btn sm ghost" onClick={() => meta({ status: t.status === "done" ? "open" : "done" })}>{t.status === "done" ? "Reopen" : "Mark done"}</button>}</div></div>
+        {t.postText && <div className="mk-mini" style={{ margin: "8px 0" }}>On post: “{t.postText}”</div>}
+        <div className="mk-chat">{t.messages.map((m) => <div key={m.id} className={"mk-bubble" + (m.mine ? " mine" : "")}><div>{m.text}</div><small>{m.mine ? "NEAS" : m.from} · {new Date(m.at).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}</small></div>)}</div>
+        {can("editor") && <>
+          <label className="mk-f">Reply{t.kind === "message" && <span className="mk-mini">Facebook allows Messenger replies within 24 hours of the customer's last message.</span>}<textarea rows={4} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write a reply…" /></label>
+          <div className="mk-row"><button type="button" className="mk-btn" disabled={busy || !reply.trim()} onClick={send}>Send reply</button><button type="button" className="mk-btn ghost" disabled={busy || !s.aiReady} onClick={suggest}>✦ Suggest reply</button>{msg && <span className="mk-mini">{msg}</span>}</div>
+          <label className="mk-f" style={{ marginTop: 12 }}>Internal note (staff only)<textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} onBlur={() => note !== (t.note ?? "") && meta({ note })} placeholder="e.g. Sent quote for 10 harnesses" /></label>
+        </>}
+      </>}</div>
+    </div></>;
 }
 
 function Analytics({ s }: { s: State }) {
@@ -717,6 +768,9 @@ function Style() {
 .mk-swatches{display:flex;gap:6px;margin-left:auto}.mk-swatches span{width:26px;height:26px;border-radius:6px;border:1px solid var(--ln)}
 .mk-swatches.big{margin:0;flex-wrap:wrap}.mk-swatches.big span{width:84px;height:60px;display:flex;align-items:flex-end;padding:4px}.mk-swatches.big small{font-size:10px;background:rgba(0,0,0,.5);padding:1px 4px;border-radius:4px}
 .mk-grid2>*,.mk-grid3>*,.mk-grid4>*{min-width:0}.mk-f select,.mk-f input,.mk-f textarea{width:100%;min-width:0;box-sizing:border-box}
+.mk-inbox{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}.mk-ilist{padding:8px;max-height:70vh;overflow:auto}.mk-ithread{all:unset;box-sizing:border-box;display:grid;gap:4px;width:100%;padding:10px;border-radius:9px;cursor:pointer;border-bottom:1px solid var(--ln)}.mk-ithread:hover{background:rgba(255,255,255,.04)}.mk-ithread.sel{background:rgba(202,147,50,.15)}.mk-ithread small{color:var(--tx2);font-size:11px}
+.mk-chat{display:grid;gap:8px;margin:12px 0;max-height:46vh;overflow:auto;padding:4px}.mk-bubble{max-width:80%;background:var(--bg2);border-radius:12px;padding:9px 12px;font-size:14px;white-space:pre-wrap}.mk-bubble.mine{justify-self:end;background:rgba(202,147,50,.2)}.mk-bubble small{display:block;color:var(--tx2);font-size:11px;margin-top:4px}
+@media (max-width:900px){.mk-inbox{grid-template-columns:1fr}}
 .mk-studio-stage{background:var(--bg2);border-radius:10px;padding:12px;display:grid;place-items:center}.mk-canvas{width:100%;max-width:100%;max-height:70vh;height:auto;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4)}.mk-mitem{display:grid;gap:6px}
 .mk-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}.mk-media img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
 .mk-x{all:unset;cursor:pointer;color:#fda4af;font-size:18px;padding:0 6px}

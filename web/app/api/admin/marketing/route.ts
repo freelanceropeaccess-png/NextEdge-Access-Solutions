@@ -2,6 +2,7 @@ import { sql } from "@/lib/db";
 import { originOf } from "@/lib/reset";
 import { metaReady, linkedinReady } from "@/lib/social";
 import { publishPost, cronToken } from "@/lib/publish";
+import { loadInbox, sendReply } from "@/lib/inbox";
 import { bad, ok } from "@/lib/http";
 import { getSetting, setSetting } from "@/lib/settings";
 import {
@@ -198,6 +199,29 @@ export async function POST(req: Request) {
     case "deleteMedia": {
       if (!need("manager")) return deny();
       await sql`delete from mk_media where id = ${Number(b.id)}`;
+      return ok();
+    }
+    case "inbox": {
+      return ok(await loadInbox());
+    }
+    case "inboxReply": {
+      if (!need("editor")) return deny();
+      const text = txt(b.text, 2000).trim();
+      if (!text) return bad("Write a reply first.");
+      try {
+        await sendReply(Number(b.accountId), String(b.kind), String(b.target), text);
+        await logActivity(u.id, "replied in inbox", `${b.kind}: ${text.slice(0, 120)}`);
+        return ok();
+      } catch (e) { return bad((e as Error).message); }
+    }
+    case "inboxMeta": {
+      if (!need("editor")) return deny();
+      const key = txt(b.key, 200);
+      if (!/^[mc]:[\w.-]+$/.test(key)) return bad("Invalid conversation.");
+      const status = ["open", "done"].includes(b.status) ? b.status : "open";
+      const assigned = b.assignedTo ? Number(b.assignedTo) : null;
+      await sql`insert into mk_inbox_meta (thread_key, status, assigned_to, note, updated_by) values (${key}, ${status}, ${assigned}, ${txt(b.note, 2000) || null}, ${u.id})
+        on conflict (thread_key) do update set status = excluded.status, assigned_to = excluded.assigned_to, note = excluded.note, updated_by = excluded.updated_by, updated_at = now()`;
       return ok();
     }
     case "disconnect": {
