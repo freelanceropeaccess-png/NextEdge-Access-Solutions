@@ -13,6 +13,9 @@ type State = {
   team: { id: number; name: string; email: string; role: Role }[]; brand: Brand;
   platforms: { id: string; name: string; needs: string; ready: boolean }[]; aiReady: boolean;
   site: { orders30: number; sales30: number; products: number; customers: number };
+  accounts?: { id: number; platform: string; name: string; status: string; error: string; expires_at: string | null }[];
+  results?: { post_id: number; platform: string; ok: boolean; remote_id: string; error: string; at: string }[];
+  connectReady?: { facebook: boolean; linkedin: boolean };
 };
 type Mod = "dashboard" | "compose" | "calendar" | "inbox" | "analytics" | "brands" | "accounts" | "reports" | "strategy" | "feeds" | "automation" | "studio" | "bio" | "team" | "settings";
 
@@ -100,7 +103,7 @@ export default function MarketingClient() {
         {mod === "inbox" && <Inbox s={s} go={go} />}
         {mod === "analytics" && <Analytics s={s} />}
         {mod === "brands" && <Brands s={s} can={can} run={run} />}
-        {mod === "accounts" && <Accounts s={s} />}
+        {mod === "accounts" && <Accounts s={s} can={can} />}
         {mod === "reports" && <Reports s={s} />}
         {mod === "strategy" && <Strategy s={s} can={can} openCompose={openCompose} />}
         {mod === "feeds" && <Feeds s={s} can={can} run={run} openCompose={openCompose} />}
@@ -129,6 +132,10 @@ function Pill({ st }: { st: Status }) { return <span className={"mk-pill st-" + 
 function PostActions({ p, can, run, onEdit }: { p: Post; can: Can; run: Run; onEdit?: () => void }) {
   return <div className="mk-row" style={{ gap: 6 }}>
     {onEdit && p.status !== "published" && (can("manager") || ["draft", "failed"].includes(p.status)) && can("editor") && <button type="button" className="mk-btn sm ghost" onClick={onEdit}>Edit</button>}
+    {["approved", "scheduled", "failed"].includes(p.status) && can("manager") && p.platforms.some((x) => ["facebook", "instagram", "linkedin"].includes(x)) && <button type="button" className="mk-btn sm" onClick={() => {
+      if (!confirm("Publish this post now to " + p.platforms.filter((x) => ["facebook", "instagram", "linkedin"].includes(x)).map((x) => PLAT[x]).join(", ") + "? It goes live on your connected accounts.")) return;
+      run({ action: "publishNow", id: p.id }, "Publishing finished — see results on the post");
+    }}>🚀 Publish now</button>}
     {MOVES[p.status].filter((m) => can(m.need)).map((m) => <button key={m.to} type="button" className={"mk-btn sm" + (m.to === "draft" || m.to === "failed" ? " ghost" : "")} onClick={() => {
       if (m.to === "published" && !confirm("Mark as published? Do this only after the post is actually live on the platform.")) return;
       const note = m.to === "failed" || (p.status === "pending" && m.to === "draft") ? prompt("Reason (saved in the audit trail):") ?? "" : "";
@@ -218,6 +225,7 @@ function Compose({ s, can, post, setPost, run }: { s: State; can: Can; post: Par
         <label className="mk-f">Internal notes<textarea rows={2} value={p.notes ?? ""} disabled={locked} onChange={(e) => set("notes", e.target.value)} /></label>
         {!locked && <div className="mk-row"><button type="button" className="mk-btn ghost" onClick={() => save(false)}>Save draft</button>{(!p.id || p.status === "draft" || p.status === "failed") && <button type="button" className="mk-btn" onClick={() => save(true)}>Save &amp; submit for review</button>}</div>}
         {p.id && <div style={{ marginTop: 12 }}><PostActions p={p as Post} can={can} run={async (b, m) => { const r = await run(b, m); setPost(null); return r; }} />{can("manager") && <button type="button" className="mk-btn sm ghost danger" style={{ marginTop: 8 }} onClick={() => { if (confirm("Delete this post?")) run({ action: "deletePost", id: p.id }, "Deleted").then(() => setPost(null)); }}>Delete post</button>}</div>}
+        {p.id && (s.results ?? []).some((r) => r.post_id === p.id) && <><div className="mk-label" style={{ marginTop: 16 }}>Publishing results</div>{(s.results ?? []).filter((r) => r.post_id === p.id).map((r, i) => <div key={i} className="mk-log">{r.ok ? "✅" : "❌"} <b>{PLAT[r.platform] ?? r.platform}</b> · {fmt(r.at)}{r.error && <div className="mk-warn">{r.error}</div>}</div>)}</>}
         {history.length > 0 && <><div className="mk-label" style={{ marginTop: 16 }}>Audit trail</div>{history.map((a) => <div key={a.id} className="mk-log"><b>{a.action}</b> · {a.who} · {fmt(a.at)}{a.detail && <div className="mk-mini">{a.detail}</div>}</div>)}</>}
       </div>
       <AiPanel s={s} can={can} onUse={(t) => set("body", (p.body ? p.body + "\n\n" : "") + t)} seed={p.title || ""} />
@@ -333,17 +341,37 @@ function Brands({ s, can, run }: { s: State; can: Can; run: Run }) {
     </div></>;
 }
 
-function Accounts({ s }: { s: State }) {
-  return <><H t="Social accounts" sub="Connections use each platform's official OAuth login. Tokens are stored server-side only." />
-    <div className="mk-grid3">{s.platforms.map((p) => <div key={p.id} className="mk-card mk-acc"><div className="mk-row between"><b>{p.name}</b><span className={"mk-pill " + (p.ready ? "st-approved" : "st-failed")}>{p.ready ? "App ready" : "Not set up"}</span></div>
-      <p className="mk-mini">{p.ready ? "App credentials found. The account-connection step is the next build phase." : <>Needs: <code>{p.needs}</code></>}</p>
-      <button type="button" className="mk-btn sm ghost" disabled>Connect (coming next)</button></div>)}</div>
-    <div className="mk-card"><div className="mk-label">How to switch on publishing</div><ol className="mk-ul">
-      <li>Create a developer app on each platform (Meta for Developers, LinkedIn Developers, Google Cloud, TikTok for Developers).</li>
-      <li>Request the publishing permissions (Meta app review is required for posting to Pages and Instagram).</li>
-      <li>Add the app keys in Vercel → Settings → Environment Variables.</li>
-      <li>We then add the Connect buttons, token encryption and refresh, health checks and real publishing. A post is only marked published when the platform confirms it.</li>
-    </ol></div></>;
+function Accounts({ s, can }: { s: State; can: Can }) {
+  const [msg] = useState(() => { try { return new URLSearchParams(location.search).get("msg") ?? ""; } catch { return ""; } });
+  const [busy, setBusy] = useState(0);
+  const origin = typeof location !== "undefined" ? location.origin : "";
+  const accs = s.accounts ?? [];
+  const cards: { id: string; name: string; connect?: "facebook" | "linkedin"; ready: boolean; needs: string; note: string }[] = [
+    { id: "facebook", name: "Facebook Pages", connect: "facebook", ready: !!s.connectReady?.facebook, needs: "META_APP_ID, META_APP_SECRET", note: "Connecting Facebook also adds any Instagram Business account linked to your Page." },
+    { id: "instagram", name: "Instagram Business", connect: "facebook", ready: !!s.connectReady?.facebook, needs: "META_APP_ID, META_APP_SECRET", note: "Connect through Facebook. Instagram posts need an image." },
+    { id: "linkedin", name: "LinkedIn (your profile)", connect: "linkedin", ready: !!s.connectReady?.linkedin, needs: "LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET", note: "Posts to your personal LinkedIn. Company Page posting needs LinkedIn's Community Management approval." },
+    { id: "youtube", name: "YouTube", ready: false, needs: "", note: "Video uploads: later phase." },
+    { id: "tiktok", name: "TikTok", ready: false, needs: "", note: "Video uploads: later phase." },
+    { id: "google_business", name: "Google Business Profile", ready: false, needs: "", note: "Needs Google's Business Profile API approval: later phase." },
+  ];
+  return <><H t="Social accounts" sub="Connect with each platform's official login. Access tokens are encrypted on the server and never shown in the browser." />
+    {msg && <div className={"mk-note"} role="status">{msg}</div>}
+    <div className="mk-grid3">{cards.map((c) => { const mine = accs.filter((a) => a.platform === c.id);
+      return <div key={c.id} className="mk-card mk-acc">
+        <div className="mk-row between"><b>{c.name}</b><span className={"mk-pill " + (mine.some((a) => a.status === "ok") ? "st-published" : c.ready ? "st-approved" : "st-draft")}>{mine.some((a) => a.status === "ok") ? "Connected" : c.ready ? "Ready to connect" : c.needs ? "Not set up" : "Later phase"}</span></div>
+        {mine.map((a) => <div key={a.id} className="mk-li" style={{ cursor: "default" }}><div style={{ flex: 1 }}><b>{a.name}</b><small>{a.status === "ok" ? "Healthy" + (a.expires_at ? " · token renews by reconnecting before " + new Date(a.expires_at).toLocaleDateString("en-PH") : "") : "⚠ " + a.error}</small></div>
+          {can("manager") && <button type="button" className="mk-btn sm ghost danger" disabled={busy === a.id} onClick={async () => { if (!confirm(`Disconnect ${a.name}?`)) return; setBusy(a.id); await call({ action: "disconnect", id: a.id }).catch(() => {}); location.reload(); }}>Disconnect</button>}</div>)}
+        <p className="mk-mini">{c.note}{!c.ready && c.needs ? <><br />Needs: <code>{c.needs}</code></> : null}</p>
+        {c.connect && (c.ready && can("manager") ? <a className="mk-btn sm" href={`/api/admin/social/connect/${c.connect}`}>{mine.length ? "Reconnect" : "Connect"}</a> : <button type="button" className="mk-btn sm ghost" disabled>Connect</button>)}
+      </div>; })}</div>
+    <div className="mk-card"><div className="mk-label">App settings to copy into each developer app</div>
+      <table className="mk-t"><tbody>
+        <tr><td>Facebook / Instagram: Valid OAuth Redirect URI</td><td><code>{origin}/api/admin/social/callback/facebook</code></td></tr>
+        <tr><td>LinkedIn: Authorized redirect URL</td><td><code>{origin}/api/admin/social/callback/linkedin</code></td></tr>
+        <tr><td>Meta permissions to request</td><td><code>pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish, business_management</code></td></tr>
+        <tr><td>LinkedIn products to add</td><td>"Sign In with LinkedIn using OpenID Connect" and "Share on LinkedIn"</td></tr>
+      </tbody></table>
+      <p className="mk-mini">A post is marked Published only after every chosen platform confirms it. If one fails, the post is marked Failed with the platform's reason, and pressing Publish now again only retries the ones that failed, so nothing is posted twice.</p></div></>;
 }
 
 function csv(rows: (string | number)[][]) { return rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n"); }

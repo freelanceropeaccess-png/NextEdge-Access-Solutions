@@ -78,5 +78,13 @@ await sql`create table if not exists mk_bio_links (
   active boolean not null default true, clicks int not null default 0, created_at timestamptz not null default now())`;
 await sql`create table if not exists mk_feeds (
   id serial primary key, name text not null, url text not null, created_at timestamptz not null default now())`;
+await sql`create table if not exists mk_social_accounts (
+  id serial primary key, platform text not null, external_id text not null, name text not null default '',
+  token_enc text not null, expires_at timestamptz, status text not null default 'ok', last_error text,
+  connected_by int references users(id) on delete set null, created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(), unique (platform, external_id))`;
+await sql`create table if not exists mk_post_results (
+  id serial primary key, post_id int references mk_posts(id) on delete cascade, account_id int references mk_social_accounts(id) on delete set null,
+  platform text not null, ok boolean not null, remote_id text, error text, created_at timestamptz not null default now())`;
 console.log("[migrate] Database ready.");
 await sql.end();
