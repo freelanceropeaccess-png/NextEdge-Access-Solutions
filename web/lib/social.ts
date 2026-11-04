@@ -6,6 +6,8 @@ import { sql } from "./db";
 
 export const SOCIAL_PLATFORMS = ["facebook", "linkedin"] as const; // connect flows (Instagram comes through Facebook)
 export type ConnectPlatform = (typeof SOCIAL_PLATFORMS)[number];
+/** Env values with stray spaces/quotes removed (common copy-paste issue). */
+const env = (k: string) => (process.env[k] ?? "").trim().replace(/^["']|["']$/g, "").trim();
 const GRAPH = () => `https://graph.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}`;
 const LI_VERSION = () => process.env.LINKEDIN_API_VERSION || "202608";
 
@@ -31,19 +33,19 @@ export function metaScopes() {
   const pages = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "business_management"];
   return (process.env.META_INSTAGRAM === "1" ? [...pages, "instagram_basic", "instagram_content_publish"] : pages).join(",");
 }
-export const metaReady = () => !!(process.env.META_APP_ID && process.env.META_APP_SECRET);
-export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET);
+export const metaReady = () => !!(process.env.META_APP_ID && env("META_APP_SECRET"));
+export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && env("LINKEDIN_CLIENT_SECRET"));
 export const redirectUri = (origin: string, p: ConnectPlatform) => `${origin}/api/admin/social/callback/${p}`;
 
 export function authorizeUrl(p: ConnectPlatform, origin: string, state: string) {
   if (p === "facebook") {
-    const q = new URLSearchParams({ client_id: process.env.META_APP_ID!, redirect_uri: redirectUri(origin, p), state, response_type: "code" });
+    const q = new URLSearchParams({ client_id: env("META_APP_ID"), redirect_uri: redirectUri(origin, p), state, response_type: "code" });
     // Facebook Login for Business apps use a saved configuration; classic Facebook Login uses a scope list.
-    if (process.env.META_LOGIN_CONFIG_ID) q.set("config_id", process.env.META_LOGIN_CONFIG_ID);
+    if (env("META_LOGIN_CONFIG_ID")) q.set("config_id", env("META_LOGIN_CONFIG_ID"));
     else q.set("scope", metaScopes());
     return `https://www.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}/dialog/oauth?${q}`;
   }
-  const q = new URLSearchParams({ response_type: "code", client_id: process.env.LINKEDIN_CLIENT_ID!, redirect_uri: redirectUri(origin, p), state, scope: "openid profile w_member_social" });
+  const q = new URLSearchParams({ response_type: "code", client_id: env("LINKEDIN_CLIENT_ID"), redirect_uri: redirectUri(origin, p), state, scope: "openid profile w_member_social" });
   return `https://www.linkedin.com/oauth/v2/authorization?${q}`;
 }
 
@@ -63,7 +65,7 @@ async function saveAccount(platform: string, externalId: string, name: string, t
 /** Exchanges the OAuth code and stores every account it grants. Returns a short summary. */
 export async function completeConnect(p: ConnectPlatform, code: string, origin: string, userId: number): Promise<string> {
   if (p === "facebook") {
-    const base = { client_id: process.env.META_APP_ID!, client_secret: process.env.META_APP_SECRET! };
+    const base = { client_id: env("META_APP_ID"), client_secret: env("META_APP_SECRET") };
     const short = await j(await fetch(`${GRAPH()}/oauth/access_token?${new URLSearchParams({ ...base, redirect_uri: redirectUri(origin, p), code })}`));
     const long = await j(await fetch(`${GRAPH()}/oauth/access_token?${new URLSearchParams({ ...base, grant_type: "fb_exchange_token", fb_exchange_token: short.access_token })}`));
     const pages = await j(await fetch(`${GRAPH()}/me/accounts?${new URLSearchParams({ fields: "id,name,access_token,instagram_business_account{id,username}", limit: "100", access_token: long.access_token })}`));
@@ -77,7 +79,7 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
     return `${fb} Facebook Page(s)${ig ? ` and ${ig} Instagram account(s)` : ""} connected`;
   }
   const tok = await j(await fetch("https://www.linkedin.com/oauth/v2/accessToken", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(origin, p), client_id: process.env.LINKEDIN_CLIENT_ID!, client_secret: process.env.LINKEDIN_CLIENT_SECRET! }) }));
+    body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(origin, p), client_id: env("LINKEDIN_CLIENT_ID"), client_secret: env("LINKEDIN_CLIENT_SECRET") }) }));
   const me = await j(await fetch("https://api.linkedin.com/v2/userinfo", { headers: { authorization: `Bearer ${tok.access_token}` } }));
   await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId);
   return `LinkedIn profile ${me.name ?? ""} connected`.trim();
