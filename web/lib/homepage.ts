@@ -12,11 +12,12 @@ export async function renderHomepage(): Promise<string> {
     getSetting<Seo>("seo", DEFAULT_SEO), getSetting<Social>("social", DEFAULT_SOCIAL), getSetting<Business>("business", DEFAULT_BUSINESS),
   ]);
   const origin = (() => { try { return new URL(seo.canonical).origin; } catch { return "https://www.nextedge-access-solutions.com"; } })();
-  const ogImage = seo.ogImage.startsWith("/") ? origin + seo.ogImage : seo.ogImage;
+  const ogSrc = seo.ogImage || biz.logo || "/img/logo.png";
+  const ogImage = ogSrc.startsWith("/") ? origin + ogSrc : ogSrc;
   const sameAs = [social.facebook, social.instagram, social.linkedin, social.youtube, social.tiktok, social.x, social.googleBusiness].filter(Boolean);
   const ld = {
     "@context": "https://schema.org", "@type": "LocalBusiness", name: biz.name, url: seo.canonical, image: ogImage,
-    logo: origin + "/img/logo.png", telephone: biz.phone, email: biz.email, description: seo.description,
+    logo: (biz.logo || "/img/logo.png").startsWith("/") ? origin + (biz.logo || "/img/logo.png") : biz.logo, telephone: biz.phone, email: biz.email, description: seo.description,
     ...(biz.street || biz.city ? { address: { "@type": "PostalAddress", streetAddress: biz.street, addressLocality: biz.city, addressRegion: biz.region, postalCode: biz.postal, addressCountry: biz.country } } : {}),
     ...(biz.hours ? { openingHours: biz.hours } : {}),
     ...(social.googleMaps ? { hasMap: social.googleMaps } : {}),

@@ -31,6 +31,7 @@ export async function PUT(req: Request) {
   if (b.business) {
     const out: Record<string, string> = {};
     for (const k of Object.keys(DEFAULT_BUSINESS)) out[k] = cleanText(b.business[k], 200);
+    out.logo = /^(https:\/\/[^\s"<>]+|\/[A-Za-z0-9_\-./]+)$/.test(String(b.business.logo ?? "").trim()) ? String(b.business.logo).trim().slice(0, 500) : DEFAULT_BUSINESS.logo;
     await setSetting("business", out);
   }
   return ok();

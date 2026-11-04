@@ -35,6 +35,17 @@ export default function SettingsPanel(props: { seo: Seo; social: Social; busines
     </div>
 
     {tab === "seo" && <div className="card" style={{ maxWidth: 820 }}>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", border: "1px solid var(--line)", borderRadius: 10, padding: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <img src={biz.logo || "/img/logo.png"} alt="Logo" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 10, background: "#f8fafc", border: "1px solid var(--line)" }} />
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <b>Company logo</b>
+          <div className="muted" style={{ fontSize: 12, margin: "2px 0 8px" }}>Used by Google (business logo in search), Facebook/LinkedIn link previews when no share image is set, and your Link-in-Bio page. Square PNG, at least 512×512.</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <label className="btn btn-ghost" style={{ cursor: "pointer" }}>Upload logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; const fd = new FormData(); fd.append("file", f); setMsg("Uploading…"); const r = await fetch("/api/admin/upload", { method: "POST", body: fd }); const j = await r.json().catch(() => ({})); if (r.ok) { setBiz({ ...biz, logo: j.url }); setMsg("Logo uploaded — click Save to apply."); } else setMsg(j.error || "Upload failed"); }} /></label>
+            <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="or paste an image link https://…" value={biz.logo ?? ""} onChange={(e) => setBiz({ ...biz, logo: e.target.value })} />
+          </div>
+        </div>
+      </div>
       <div style={{ background: "#f8fafc", border: "1px solid var(--line)", borderRadius: 10, padding: 12, marginBottom: 14 }}>
         <div className="muted" style={{ fontSize: 12 }}>Google search preview</div>
         <div style={{ color: "#1a0dab", fontSize: 18, marginTop: 4 }}>{seo.title || "Page title"}</div>
@@ -57,10 +68,21 @@ export default function SettingsPanel(props: { seo: Seo; social: Social; busines
       </div>
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14, margin: "6px 0 14px" }}><input type="checkbox" checked={seo.robotsIndex} onChange={(e) => setSeo({ ...seo, robotsIndex: e.target.checked })} /> Allow Google and other search engines to list the website</label>
       <p className="muted" style={{ fontSize: 12 }}>Also live automatically: <a href="/sitemap.xml" target="_blank">sitemap.xml</a> and <a href="/robots.txt" target="_blank">robots.txt</a>. Submit the sitemap in Google Search Console.</p>
-      <button type="button" className="btn btn-primary" disabled={busy} onClick={() => save({ seo })}>Save SEO</button>
+      <button type="button" className="btn btn-primary" disabled={busy} onClick={() => save({ seo, business: biz })}>Save SEO</button>
     </div>}
 
     {tab === "google" && <div className="card" style={{ maxWidth: 820 }}>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", border: "1px solid var(--line)", borderRadius: 10, padding: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <img src={biz.logo || "/img/logo.png"} alt="Logo" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 10, background: "#f8fafc", border: "1px solid var(--line)" }} />
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <b>Company logo</b>
+          <div className="muted" style={{ fontSize: 12, margin: "2px 0 8px" }}>Used by Google (business logo in search), Facebook/LinkedIn link previews when no share image is set, and your Link-in-Bio page. Square PNG, at least 512×512.</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <label className="btn btn-ghost" style={{ cursor: "pointer" }}>Upload logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; const fd = new FormData(); fd.append("file", f); setMsg("Uploading…"); const r = await fetch("/api/admin/upload", { method: "POST", body: fd }); const j = await r.json().catch(() => ({})); if (r.ok) { setBiz({ ...biz, logo: j.url }); setMsg("Logo uploaded — click Save to apply."); } else setMsg(j.error || "Upload failed"); }} /></label>
+            <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="or paste an image link https://…" value={biz.logo ?? ""} onChange={(e) => setBiz({ ...biz, logo: e.target.value })} />
+          </div>
+        </div>
+      </div>
       <p className="muted" style={{ marginTop: 0 }}>These details are added to the homepage as LocalBusiness data so Google can match your website to your Business Profile and show your phone, address and hours in search and Maps.</p>
       <Field label="Google Business Profile link" hint="From your profile: Share → copy link (e.g. https://g.page/r/… or https://maps.app.goo.gl/…)."><input {...So("googleBusiness")} /></Field>
       <Field label="Google Maps location link"><input {...So("googleMaps")} /></Field>
@@ -79,6 +101,17 @@ export default function SettingsPanel(props: { seo: Seo; social: Social; busines
     </div>}
 
     {tab === "social" && <div className="card" style={{ maxWidth: 820 }}>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", border: "1px solid var(--line)", borderRadius: 10, padding: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <img src={biz.logo || "/img/logo.png"} alt="Logo" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 10, background: "#f8fafc", border: "1px solid var(--line)" }} />
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <b>Company logo</b>
+          <div className="muted" style={{ fontSize: 12, margin: "2px 0 8px" }}>Used by Google (business logo in search), Facebook/LinkedIn link previews when no share image is set, and your Link-in-Bio page. Square PNG, at least 512×512.</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <label className="btn btn-ghost" style={{ cursor: "pointer" }}>Upload logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; const fd = new FormData(); fd.append("file", f); setMsg("Uploading…"); const r = await fetch("/api/admin/upload", { method: "POST", body: fd }); const j = await r.json().catch(() => ({})); if (r.ok) { setBiz({ ...biz, logo: j.url }); setMsg("Logo uploaded — click Save to apply."); } else setMsg(j.error || "Upload failed"); }} /></label>
+            <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="or paste an image link https://…" value={biz.logo ?? ""} onChange={(e) => setBiz({ ...biz, logo: e.target.value })} />
+          </div>
+        </div>
+      </div>
       <p className="muted" style={{ marginTop: 0 }}>These links power the social buttons on the side of the homepage. Leave a field blank to hide that button.</p>
       <Field label="Facebook page"><input {...So("facebook")} /></Field>
       <Field label="Instagram"><input {...So("instagram")} /></Field>
@@ -86,7 +119,7 @@ export default function SettingsPanel(props: { seo: Seo; social: Social; busines
       <Field label="YouTube"><input {...So("youtube")} /></Field>
       <Field label="TikTok"><input {...So("tiktok")} /></Field>
       <Field label="X (Twitter)"><input {...So("x")} /></Field>
-      <button type="button" className="btn btn-primary" disabled={busy} onClick={() => save({ social })}>Save social links</button>
+      <button type="button" className="btn btn-primary" disabled={busy} onClick={() => save({ social, business: biz })}>Save social links</button>
     </div>}
   </div>;
 }

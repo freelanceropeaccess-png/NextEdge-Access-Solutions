@@ -8,7 +8,7 @@ export type Social = {
   googleBusiness: string; googleMaps: string; googleReview: string; facebook: string; instagram: string; linkedin: string;
   youtube: string; tiktok: string; x: string;
 };
-export type Business = { name: string; phone: string; email: string; street: string; city: string; region: string; postal: string; country: string; hours: string };
+export type Business = { name: string; phone: string; email: string; street: string; city: string; region: string; postal: string; country: string; hours: string; logo: string };
 
 export const DEFAULT_SEO: Seo = {
   title: "NEAS — IRATA Rope Access & Height Safety, Philippines",
@@ -28,7 +28,7 @@ export const DEFAULT_SOCIAL: Social = {
 };
 export const DEFAULT_BUSINESS: Business = {
   name: "NextEdge Access Solutions. (NEAS) OPC", phone: "+63 991 426 5886", email: "info.nextedgeaccesssolutions@gmail.com",
-  street: "", city: "", region: "", postal: "", country: "PH", hours: "Mo-Su 00:00-23:59",
+  street: "", city: "", region: "", postal: "", country: "PH", hours: "Mo-Su 00:00-23:59", logo: "/img/logo.png",
 };
 
 export async function getSetting<T extends object>(key: string, fallback: T): Promise<T> {

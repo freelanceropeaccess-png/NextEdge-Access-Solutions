@@ -57,5 +57,23 @@ if (admins === 0 && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
             on conflict (email) do update set role = 'admin', password_hash = excluded.password_hash`;
   console.log(`[migrate] Admin account ready for ${process.env.ADMIN_EMAIL}.`);
 }
+// ---- Marketing Command Center (additive only) ----
+await sql`alter table users add column if not exists marketing_role text`;
+await sql`create table if not exists mk_posts (
+  id serial primary key, title text not null default '', body text not null default '',
+  platforms text[] not null default '{}', status text not null default 'draft'
+    check (status in ('draft','pending','approved','scheduled','published','failed')),
+  scheduled_at timestamptz, media_url text, campaign text, notes text,
+  created_by int references users(id) on delete set null,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+await sql`create table if not exists mk_activity (
+  id serial primary key, post_id int references mk_posts(id) on delete set null,
+  user_id int references users(id) on delete set null, action text not null, detail text,
+  created_at timestamptz not null default now())`;
+await sql`create table if not exists mk_bio_links (
+  id serial primary key, label text not null, url text not null, sort int not null default 0,
+  active boolean not null default true, clicks int not null default 0, created_at timestamptz not null default now())`;
+await sql`create table if not exists mk_feeds (
+  id serial primary key, name text not null, url text not null, created_at timestamptz not null default now())`;
 console.log("[migrate] Database ready.");
 await sql.end();

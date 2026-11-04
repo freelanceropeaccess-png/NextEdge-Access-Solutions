@@ -22,6 +22,7 @@ export default async function Admin() {
     getSetting("sheet", { url: "https://docs.google.com/spreadsheets/d/1fl4TGP5Jl-yvVrN2hheb7DMzLVPVKbpfRQEPgC30Vik/edit?gid=1469242798#gid=1469242798", priceSource: "markup" as "markup" | "sheet", hideMissing: true, lastSync: "", lastResult: "" }),
   ]);
   return <>
+  <div className="wrap" style={{ padding: "18px 20px 0" }}><a href="/admin/marketing" className="btn" style={{ background: "linear-gradient(135deg,#071D29,#172235)", color: "#EBC07E", border: "1px solid #CA9332", display: "inline-flex", gap: 8 }}>✦ Marketing Command Center →</a></div>
   <AdminClient
     markup={markup}
     categoryMarkup={catMarkup}
