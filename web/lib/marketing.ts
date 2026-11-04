@@ -77,17 +77,26 @@ Avoid: ${b.avoid}
 Never invent certifications, project names, client names, statistics or prices. If a fact is needed and not given, leave a clear [placeholder].`;
   const user = `Write ${what}.\nTopic / source content:\n${topic.slice(0, 6000)}${extra.tone ? `\nTone: ${extra.tone}` : ""}\nReturn only the content, ready to edit.`;
   if (!key && gkey) {
-    try {
-      const model = process.env.MK_GEMINI_MODEL || "gemini-flash-latest";
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-        method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": gkey },
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { maxOutputTokens: 2000 } }),
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) return { error: `AI request failed (${r.status}): ${j?.error?.message ?? "unknown error"}` };
-      const text = (j.candidates?.[0]?.content?.parts ?? []).map((x: { text?: string }) => x.text ?? "").join("").trim();
-      return text ? { text } : { error: "The AI returned no text. Try again." };
-    } catch (e) { return { error: "Could not reach the AI service: " + (e as Error).message }; }
+    const models = [process.env.MK_GEMINI_MODEL, "gemini-flash-latest", "gemini-flash-lite-latest"].filter((m, i, a): m is string => !!m && a.indexOf(m) === i);
+    let last = "";
+    for (const model of models) {
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+          method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": gkey },
+          body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { maxOutputTokens: 2000 } }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) {
+          const text = (j.candidates?.[0]?.content?.parts ?? []).map((x: { text?: string }) => x.text ?? "").join("").trim();
+          if (text) return { text };
+          last = "The AI returned no text. Try again.";
+          continue;
+        }
+        last = `AI request failed (${r.status}): ${j?.error?.message ?? "unknown error"}`;
+        if (![404, 429, 500, 503].includes(r.status)) break; // key or request problem: don't try other models
+      } catch (e) { last = "Could not reach the AI service: " + (e as Error).message; }
+    }
+    return { error: last || "AI is busy. Please try again in a minute." };
   }
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
