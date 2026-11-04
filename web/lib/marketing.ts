@@ -63,8 +63,8 @@ export const AI_TASKS: Record<string, string> = {
 };
 
 export async function generate(task: string, topic: string, extra: { tone?: string; brand: Brand }): Promise<{ text: string } | { error: string }> {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return { error: "AI is not switched on yet. Add an ANTHROPIC_API_KEY environment variable in Vercel, then redeploy." };
+  const key = process.env.ANTHROPIC_API_KEY, gkey = process.env.GEMINI_API_KEY;
+  if (!key && !gkey) return { error: "AI is not switched on yet. Add a free GEMINI_API_KEY (or an ANTHROPIC_API_KEY) in Vercel → Settings → Environment Variables, then redeploy." };
   const what = AI_TASKS[task];
   if (!what) return { error: "Unknown content type." };
   const b = extra.brand;
@@ -76,10 +76,23 @@ Preferred hashtags: ${b.hashtags}
 Avoid: ${b.avoid}
 Never invent certifications, project names, client names, statistics or prices. If a fact is needed and not given, leave a clear [placeholder].`;
   const user = `Write ${what}.\nTopic / source content:\n${topic.slice(0, 6000)}${extra.tone ? `\nTone: ${extra.tone}` : ""}\nReturn only the content, ready to edit.`;
+  if (!key && gkey) {
+    try {
+      const model = process.env.MK_GEMINI_MODEL || "gemini-2.0-flash";
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": gkey },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { maxOutputTokens: 2000 } }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return { error: `AI request failed (${r.status}): ${j?.error?.message ?? "unknown error"}` };
+      const text = (j.candidates?.[0]?.content?.parts ?? []).map((x: { text?: string }) => x.text ?? "").join("").trim();
+      return text ? { text } : { error: "The AI returned no text. Try again." };
+    } catch (e) { return { error: "Could not reach the AI service: " + (e as Error).message }; }
+  }
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      headers: { "content-type": "application/json", "x-api-key": key as string, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({ model: process.env.MK_AI_MODEL || "claude-sonnet-5-5", max_tokens: 2000, system, messages: [{ role: "user", content: user }] }),
     });
     const j = await r.json().catch(() => ({}));

@@ -35,7 +35,7 @@ async function loadState(u: MkUser) {
     team: team.map((t) => ({ id: t.id, name: t.name, email: t.email, role: t.marketing_role })),
     brand: { ...DEFAULT_BRAND, ...brand },
     platforms: platformStatus(),
-    aiReady: !!process.env.ANTHROPIC_API_KEY,
+    aiReady: !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY),
     site: { orders30: orders[0].n, sales30: orders[0].total, products: counts[0].products, customers: counts[0].customers },
   };
 }

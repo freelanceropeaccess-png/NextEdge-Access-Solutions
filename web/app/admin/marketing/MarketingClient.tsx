@@ -235,7 +235,7 @@ function AiPanel({ s, can, onUse, seed, defaultTask = "facebook" }: { s: State; 
   }
   return <div className="mk-card">
     <div className="mk-label">✦ AI content generator</div>
-    {!s.aiReady && <div className="mk-note">AI is off: add <code>ANTHROPIC_API_KEY</code> in Vercel → Settings → Environment Variables, then redeploy. Nothing is generated until then.</div>}
+    {!s.aiReady && <div className="mk-note">AI is off: add a free <code>GEMINI_API_KEY</code> (from aistudio.google.com) or an <code>ANTHROPIC_API_KEY</code> in Vercel → Settings → Environment Variables, then redeploy. Nothing is generated until then.</div>}
     <label className="mk-f">Create<select value={task} onChange={(e) => setTask(e.target.value)}>{AI_TASKS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
     <label className="mk-f">Topic, service or content to repurpose<textarea rows={4} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Wind turbine blade inspection by IRATA rope access team in Ilocos Norte" /></label>
     <label className="mk-f">Tone (optional)<input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="e.g. urgent, friendly, technical" /></label>
@@ -463,7 +463,7 @@ function Settings({ s }: { s: State }) {
       <div className="mk-card"><div className="mk-label">System status</div><table className="mk-t"><tbody>
         <tr><td>Login &amp; permissions</td><td><span className="mk-pill st-approved">Existing NEAS admin login</span></td></tr>
         <tr><td>Database</td><td><span className="mk-pill st-approved">Connected</span></td></tr>
-        <tr><td>AI generator</td><td><span className={"mk-pill " + (s.aiReady ? "st-approved" : "st-failed")}>{s.aiReady ? "On" : "Needs ANTHROPIC_API_KEY"}</span></td></tr>
+        <tr><td>AI generator</td><td><span className={"mk-pill " + (s.aiReady ? "st-approved" : "st-failed")}>{s.aiReady ? "On" : "Needs GEMINI_API_KEY (free)"}</span></td></tr>
         {s.platforms.map((p) => <tr key={p.id}><td>{p.name}</td><td><span className={"mk-pill " + (p.ready ? "st-approved" : "st-draft")}>{p.ready ? "App ready" : "Not set up"}</span></td></tr>)}
       </tbody></table></div>
       <div className="mk-card"><div className="mk-label">Activity log ({s.activity.length})</div><div className="mk-scroll">{s.activity.map((a) => <div key={a.id} className="mk-log">{fmt(a.at)} · {a.who} · <b>{a.action}</b> {a.detail}</div>)}{!s.activity.length && <p className="mk-mini">No activity yet.</p>}</div></div>
