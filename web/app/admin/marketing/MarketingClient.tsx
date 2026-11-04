@@ -166,7 +166,7 @@ function Dashboard({ s, go, openCompose, can, run }: { s: State; go: (m: Mod) =>
         <div className="mk-stat"><small>⚠ Need attention</small><b>{pending.length + failed.length}</b><span>items</span></div>
         <div className="mk-stat"><small>◷ Scheduled today</small><b>{today.length}</b><span>posts</span></div>
         <div className="mk-stat"><small>✉ Unread inbox</small><b>—</b><span>not connected</span></div>
-        <div className="mk-stat"><small>⚑ Monthly goal</small><b>{pubMonth}{goal ? ` / ${goal}` : ""}</b><span>published{goal ? "" : " · set a goal in Brands"}</span>{goal > 0 && <div className="mk-bar"><i style={{ width: Math.min(100, (pubMonth / goal) * 100) + "%" }} /></div>}</div>
+        <div className="mk-stat"><small>⚑ Monthly goal</small><b>{pubMonth} / {goal || "unlimited"}</b><span>published{goal ? "" : " · unlimited posting"}</span>{goal > 0 && <div className="mk-bar"><i style={{ width: Math.min(100, (pubMonth / goal) * 100) + "%" }} /></div>}</div>
       </div>
     </div>
     <div className="mk-card"><div className="mk-label">Quick actions</div><div className="mk-row">
@@ -421,7 +421,7 @@ function Brands({ s, can, run }: { s: State; can: Can; run: Run }) {
       <div className="mk-brandhead"><span className="mk-logo-mark">N</span><div><b>NextEdge Access Solutions (NEAS) OPC</b><small>IRATA rope access & height safety · Marilao, Bulacan</small></div><div className="mk-swatches">{["#071D29", "#101827", "#172235", "#CA9332", "#EBC07E"].map((c) => <span key={c} style={{ background: c }} title={c} />)}</div></div>
       {ro && <div className="mk-note">Only marketing admins can change brand settings.</div>}
       {F("voice", "Brand voice")}{F("audience", "Target audience")}{F("services", "Services / industries covered", 4, "Separate with semicolons")}{F("hashtags", "Preferred hashtags", 2)}{F("avoid", "Things the AI must avoid", 2)}{F("languages", "Languages", 1)}
-      <label className="mk-f">Monthly publishing goal (posts)<input type="number" min={0} max={500} disabled={ro} value={b.goal} onChange={(e) => setB({ ...b, goal: Number(e.target.value) })} /></label>
+      <label className="mk-f">Monthly publishing goal (posts · 0 = unlimited)<input type="number" min={0} max={500} disabled={ro} value={b.goal} onChange={(e) => setB({ ...b, goal: Number(e.target.value) })} /></label>
       {!ro && <button type="button" className="mk-btn" onClick={() => run({ action: "saveBrand", brand: b }, "Brand saved ✓")}>Save brand settings</button>}
     </div></>;
 }

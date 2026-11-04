@@ -33,6 +33,8 @@ export function metaScopes() {
   const pages = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "business_management"];
   return (process.env.META_INSTAGRAM === "1" ? [...pages, "instagram_basic", "instagram_content_publish"] : pages).join(",");
 }
+/** LINKEDIN_PAGES=1 also asks for Company Page access (needs the Community Management API product on the LinkedIn app). */
+const liScopes = () => "openid profile w_member_social" + (process.env.LINKEDIN_PAGES === "1" ? " rw_organization_admin w_organization_social" : "");
 export const metaReady = () => !!(process.env.META_APP_ID && env("META_APP_SECRET"));
 export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && env("LINKEDIN_CLIENT_SECRET"));
 export const redirectUri = (origin: string, p: ConnectPlatform) => `${origin}/api/admin/social/callback/${p}`;
@@ -45,7 +47,7 @@ export function authorizeUrl(p: ConnectPlatform, origin: string, state: string) 
     else q.set("scope", metaScopes());
     return `https://www.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}/dialog/oauth?${q}`;
   }
-  const q = new URLSearchParams({ response_type: "code", client_id: env("LINKEDIN_CLIENT_ID"), redirect_uri: redirectUri(origin, p), state, scope: "openid profile w_member_social" });
+  const q = new URLSearchParams({ response_type: "code", client_id: env("LINKEDIN_CLIENT_ID"), redirect_uri: redirectUri(origin, p), state, scope: liScopes() });
   return `https://www.linkedin.com/oauth/v2/authorization?${q}`;
 }
 
@@ -82,7 +84,18 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
     body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(origin, p), client_id: env("LINKEDIN_CLIENT_ID"), client_secret: env("LINKEDIN_CLIENT_SECRET") }) }));
   const me = await j(await fetch("https://api.linkedin.com/v2/userinfo", { headers: { authorization: `Bearer ${tok.access_token}` } }));
   await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId);
-  return `LinkedIn profile ${me.name ?? ""} connected`.trim();
+  let orgs = 0;
+  if (process.env.LINKEDIN_PAGES === "1") {
+    const h = { authorization: `Bearer ${tok.access_token}`, "LinkedIn-Version": LI_VERSION(), "X-Restli-Protocol-Version": "2.0.0" };
+    const exp = tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null;
+    const acl = await j(await fetch("https://api.linkedin.com/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED", { headers: h }));
+    for (const e of acl.elements ?? []) {
+      const id = String(e.organization ?? "").split(":").pop(); if (!id) continue;
+      const org = await fetch(`https://api.linkedin.com/rest/organizations/${id}`, { headers: h }).then((r) => r.json()).catch(() => ({}));
+      await saveAccount("linkedin", "org:" + id, (org.localizedName || "LinkedIn Page " + id) + " (Page)", tok.access_token, exp, userId); orgs++;
+    }
+  }
+  return `LinkedIn profile ${me.name ?? ""}${orgs ? ` and ${orgs} LinkedIn Page(s)` : ""} connected`.replace(/\s+/g, " ");
 }
 
 const absolute = (u: string, origin: string) => (u.startsWith("/") ? origin + u : u);
@@ -108,7 +121,7 @@ export async function publishTo(acc: { platform: string; external_id: string; to
   if (acc.platform === "linkedin") {
     const r = await fetch("https://api.linkedin.com/rest/posts", { method: "POST",
       headers: { authorization: `Bearer ${token}`, "LinkedIn-Version": LI_VERSION(), "X-Restli-Protocol-Version": "2.0.0", "content-type": "application/json" },
-      body: JSON.stringify({ author: `urn:li:person:${acc.external_id}`, commentary: liEscape(text + (mediaUrl ? `\n\n${absolute(mediaUrl, origin)}` : "")), visibility: "PUBLIC",
+      body: JSON.stringify({ author: acc.external_id.startsWith("org:") ? `urn:li:organization:${acc.external_id.slice(4)}` : `urn:li:person:${acc.external_id}`, commentary: liEscape(text + (mediaUrl ? `\n\n${absolute(mediaUrl, origin)}` : "")), visibility: "PUBLIC",
         distribution: { feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: [] }, lifecycleState: "PUBLISHED", isReshareDisabledByAuthor: false }) });
     if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b?.message || `LinkedIn answered ${r.status}`); }
     return r.headers.get("x-restli-id") || "ok";
