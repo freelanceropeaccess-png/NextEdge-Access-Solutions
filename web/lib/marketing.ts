@@ -78,7 +78,7 @@ Never invent certifications, project names, client names, statistics or prices. 
   const user = `Write ${what}.\nTopic / source content:\n${topic.slice(0, 6000)}${extra.tone ? `\nTone: ${extra.tone}` : ""}\nReturn only the content, ready to edit.`;
   if (!key && gkey) {
     try {
-      const model = process.env.MK_GEMINI_MODEL || "gemini-2.0-flash";
+      const model = process.env.MK_GEMINI_MODEL || "gemini-flash-latest";
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
         method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": gkey },
         body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { maxOutputTokens: 2000 } }),
