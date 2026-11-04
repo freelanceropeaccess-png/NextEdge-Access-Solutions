@@ -57,6 +57,9 @@ if (admins === 0 && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
             on conflict (email) do update set role = 'admin', password_hash = excluded.password_hash`;
   console.log(`[migrate] Admin account ready for ${process.env.ADMIN_EMAIL}.`);
 }
+await sql`create table if not exists password_resets (
+  token_hash text primary key, user_id int not null references users(id) on delete cascade,
+  expires_at timestamptz not null, used_at timestamptz, created_at timestamptz not null default now())`;
 // ---- Marketing Command Center (additive only) ----
 await sql`alter table users add column if not exists marketing_role text`;
 await sql`create table if not exists mk_posts (

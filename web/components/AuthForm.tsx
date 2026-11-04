@@ -31,6 +31,7 @@ export default function AuthForm({ portal, next, social = { google: false, faceb
         <label className="field">Email<input name="email" type="email" required autoComplete="email" /></label>
         <label className="field">Password<input name="password" type="password" required minLength={mode === "signup" ? 8 : 1} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>
         {mode === "signup" && <span className="muted" style={{ fontSize: 12 }}>At least 8 characters.</span>}
+        {mode === "login" && <a href="/forgot-password" style={{ fontSize: 13, justifySelf: "end", marginTop: -4 }}>Forgot password?</a>}
         {err && <p className="err" role="alert">{err}</p>}
         <button className="btn btn-primary" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? (portal === "admin" ? "Log in to Admin" : "Log in") : "Create account"}</button>
       </form>

@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { BANK } from "@/lib/http";
 import OrderActions from "./OrderActions";
+import ChangePassword from "./ChangePassword";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My Account — NEAS" };
@@ -16,6 +17,7 @@ export default async function Account() {
   const items = orders.length ? await sql`select order_id, name, quantity, unit_price from order_items where order_id in ${sql(orders.map((o) => o.id))}` : [];
   return <div className="wrap" style={{ padding: "40px 20px", display: "grid", gap: 20 }}>
     <div><div className="eyebrow">My account</div><h1>Hello, {user.name}</h1><p className="muted">{user.email}{user.phone ? " · " + user.phone : ""}</p></div>
+    <ChangePassword />
     <div className="card">
       <h2 style={{ marginTop: 0 }}>My orders</h2>
       {!orders.length ? <p className="muted">No orders yet. <a href="/store">Visit the Online Store</a>.</p> :

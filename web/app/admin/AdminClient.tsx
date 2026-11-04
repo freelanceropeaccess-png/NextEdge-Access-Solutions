@@ -98,8 +98,8 @@ export default function AdminClient(props: { markup: number; categoryMarkup: Rec
     </div>}
 
     {tab === "customers" && <div className="card" style={{ overflowX: "auto" }}>
-      {!props.customers.length ? <p className="muted">No customer accounts yet.</p> : <table className="t"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Joined</th><th>Orders</th></tr></thead><tbody>
-        {props.customers.map((c) => <tr key={c.id}><td>{c.name}</td><td>{c.email}</td><td>{c.phone}</td><td>{new Date(c.created_at).toLocaleDateString("en-PH")}</td><td>{c.orders}</td></tr>)}
+      {!props.customers.length ? <p className="muted">No customer accounts yet.</p> : <table className="t"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Joined</th><th>Orders</th><th>Password</th></tr></thead><tbody>
+        {props.customers.map((c) => <tr key={c.id}><td>{c.name}</td><td>{c.email}</td><td>{c.phone}</td><td>{new Date(c.created_at).toLocaleDateString("en-PH")}</td><td>{c.orders}</td><td><ResetLinkButton id={c.id} name={c.name} phone={c.phone} /></td></tr>)}
       </tbody></table>}
     </div>}
   </div>;
@@ -123,6 +123,28 @@ function DetailsEditor({ p }: { p: Prod }) {
       <label className="field" style={{ fontSize: 12 }}>Technical features (one per line)<textarea rows={5} value={d.features} onChange={(e) => setD({ ...d, features: e.target.value })} placeholder={"EN 361 / EN 813 certified\nWeight: 1.9 kg\nSizes: S-M"} /></label>
       <label className="field" style={{ fontSize: 12 }}>Technical specs link (PDF / datasheet)<input type="url" value={d.specsUrl} onChange={(e) => setD({ ...d, specsUrl: e.target.value })} placeholder="https://…" /></label>
       <div><button type="button" className="btn btn-primary" style={{ padding: "5px 12px", fontSize: 12 }} onClick={save}>Save details</button> <span className="muted" style={{ fontSize: 12 }}>{msg}</span></div>
+    </div>}
+  </div>;
+}
+
+function ResetLinkButton({ id, name, phone }: { id: number; name: string; phone: string }) {
+  const [link, setLink] = useState(""); const [msg, setMsg] = useState("");
+  async function make() {
+    if (!confirm(`Create a password reset link for ${name}? It works once, for 24 hours.`)) return;
+    setMsg("Creating…");
+    const r = await fetch(`/api/admin/users/${id}/reset-link`, { method: "POST" });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { setMsg(j.error || "Failed"); return; }
+    setLink(j.link); setMsg(j.emailed ? "Emailed ✓ — or send:" : "Send this link:");
+    navigator.clipboard?.writeText(j.link).catch(() => {});
+  }
+  const wa = phone ? phone.replace(/[^0-9]/g, "").replace(/^0/, "63") : "";
+  return <div style={{ display: "grid", gap: 4, minWidth: 170 }}>
+    {!link && <button type="button" className="btn btn-ghost" style={{ padding: "4px 10px", fontSize: 12 }} onClick={make}>Reset link</button>}
+    {msg && <span className="muted" style={{ fontSize: 11 }}>{msg}</span>}
+    {link && <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <button type="button" className="btn btn-ghost" style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => navigator.clipboard?.writeText(link)}>Copy</button>
+      <a className="btn btn-ghost" style={{ padding: "4px 10px", fontSize: 12 }} target="_blank" rel="noopener" href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hi ${name}, here is your NEAS password reset link (valid 24 hours): ${link}`)}`}>WhatsApp</a>
     </div>}
   </div>;
 }
