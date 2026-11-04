@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 import { originOf } from "@/lib/reset";
-import { publishTo, metaReady, linkedinReady } from "@/lib/social";
+import { metaReady, linkedinReady } from "@/lib/social";
+import { publishPost, cronToken } from "@/lib/publish";
 import { bad, ok } from "@/lib/http";
 import { getSetting, setSetting } from "@/lib/settings";
 import {
@@ -40,6 +41,7 @@ async function loadState(u: MkUser) {
     accounts: (await sql`select id, platform, name, status, last_error, expires_at, updated_at from mk_social_accounts order by platform, name`.catch(() => [])).map((a) => ({ id: a.id, platform: a.platform, name: a.name, status: a.status, error: a.last_error ?? "", expires_at: a.expires_at ? new Date(a.expires_at).toISOString() : null })),
     results: (await sql`select post_id, platform, ok, remote_id, error, created_at from mk_post_results order by id desc limit 500`.catch(() => [])).map((r) => ({ post_id: r.post_id, platform: r.platform, ok: r.ok, remote_id: r.remote_id ?? "", error: r.error ?? "", at: new Date(r.created_at).toISOString() })),
     connectReady: { facebook: metaReady(), linkedin: linkedinReady() },
+    scheduler: { url: u.role === "admin" ? `${process.env.SITE_URL?.replace(/\/$/, "") || "https://www.nextedge-access-solutions.com"}/api/cron/publish?token=${cronToken()}` : "", hasCronSecret: !!process.env.CRON_SECRET, last: await getSetting<{ at?: string; published?: number; failed?: number }>("mk_cron_last", {}) },
     aiReady: !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY),
     site: { orders30: orders[0].n, sales30: orders[0].total, products: counts[0].products, customers: counts[0].customers },
   };
@@ -192,34 +194,8 @@ export async function POST(req: Request) {
     }
     case "publishNow": {
       if (!need("manager")) return deny();
-      const id = Number(b.id);
-      const post = (await sql`select * from mk_posts where id = ${id}`)[0];
-      if (!post) return bad("Post not found.", 404);
-      if (!["approved", "scheduled", "failed"].includes(post.status)) return bad("Only approved or scheduled posts can be published.");
-      const wanted: string[] = (post.platforms ?? []).filter((x: string) => ["facebook", "instagram", "linkedin"].includes(x));
-      if (!wanted.length) return bad("Pick Facebook, Instagram or LinkedIn on this post first. Other platforms can't publish automatically yet.");
-      const accounts = await sql`select * from mk_social_accounts where platform in ${sql(wanted)} and status = 'ok'`;
-      const done = new Set((await sql`select account_id from mk_post_results where post_id = ${id} and ok`).map((r) => r.account_id));
-      const out: { platform: string; name: string; ok: boolean; error?: string }[] = [];
-      for (const pl of wanted) if (!accounts.some((a) => a.platform === pl)) out.push({ platform: pl, name: "", ok: false, error: "No connected account" });
-      const origin = originOf(req);
-      for (const a of accounts) {
-        if (done.has(a.id)) { out.push({ platform: a.platform, name: a.name, ok: true }); continue; } // already posted: never post twice
-        try {
-          const rid = await publishTo(a as unknown as { platform: string; external_id: string; token_enc: string }, String(post.body || post.title), String(post.media_url || ""), origin);
-          await sql`insert into mk_post_results (post_id, account_id, platform, ok, remote_id) values (${id}, ${a.id}, ${a.platform}, true, ${rid})`;
-          out.push({ platform: a.platform, name: a.name, ok: true });
-        } catch (e) {
-          const msg = (e as Error).message.slice(0, 400);
-          await sql`insert into mk_post_results (post_id, account_id, platform, ok, error) values (${id}, ${a.id}, ${a.platform}, false, ${msg})`;
-          if (/token|session|expired|OAuth|permission/i.test(msg)) await sql`update mk_social_accounts set status = 'error', last_error = ${msg} where id = ${a.id}`;
-          out.push({ platform: a.platform, name: a.name, ok: false, error: msg });
-        }
-      }
-      const allOk = out.length > 0 && out.every((r) => r.ok);
-      await sql`update mk_posts set status = ${allOk ? "published" : "failed"}, updated_at = now() where id = ${id}`;
-      await logActivity(u.id, allOk ? "published" : "publish failed", out.map((r) => `${r.platform}${r.name ? " (" + r.name + ")" : ""}: ${r.ok ? "ok" : r.error}`).join("; "), id);
-      return ok({ allOk, results: out });
+      const r = await publishPost(Number(b.id), u.id, originOf(req));
+      return "error" in r ? bad(r.error) : ok(r);
     }
     case "setRole": {
       if (!need("admin")) return deny();

@@ -16,6 +16,7 @@ type State = {
   accounts?: { id: number; platform: string; name: string; status: string; error: string; expires_at: string | null }[];
   results?: { post_id: number; platform: string; ok: boolean; remote_id: string; error: string; at: string }[];
   connectReady?: { facebook: boolean; linkedin: boolean };
+  scheduler?: { url: string; hasCronSecret: boolean; last: { at?: string; published?: number; failed?: number } };
 };
 type Mod = "dashboard" | "compose" | "calendar" | "inbox" | "analytics" | "brands" | "accounts" | "reports" | "strategy" | "feeds" | "automation" | "studio" | "bio" | "team" | "settings";
 
@@ -431,8 +432,22 @@ function Feeds({ s, can, run, openCompose }: { s: State; can: Can; run: Run; ope
 }
 
 function Automation({ s }: { s: State }) {
+  const sc = s.scheduler; const connected = (s.accounts ?? []).some((a) => a.status === "ok");
+  const due = s.posts.filter((p) => p.status === "scheduled").length;
+  const [copied, setCopied] = useState(false);
+  const autoCard = <div className="mk-card"><div className="mk-row between"><div className="mk-label" style={{ margin: 0 }}>Publish scheduled posts automatically</div>
+      <span className={"mk-pill " + (connected && sc?.last?.at ? "st-published" : connected ? "st-approved" : "st-draft")}>{connected && sc?.last?.at ? "Active" : connected ? "Ready: start the scheduler" : "Waiting for a connected account"}</span></div>
+    <p className="mk-mini">Posts set to <b>Scheduled</b> with a date and time are published when that time arrives, using the same rules as Publish now: marked Published only when every platform confirms, never posted twice. {due} post(s) currently scheduled.</p>
+    <table className="mk-t"><tbody>
+      <tr><td>Last run</td><td>{sc?.last?.at ? `${fmt(sc.last.at)} · ${sc.last.published ?? 0} published, ${sc.last.failed ?? 0} failed` : "Not run yet"}</td></tr>
+      <tr><td>Daily run (free, built in)</td><td>Every day at 9:00 AM PH via Vercel Cron. {sc?.hasCronSecret ? "✅ CRON_SECRET is set." : <>Add a <code>CRON_SECRET</code> setting in Vercel (any 32+ random characters), then Redeploy, to switch it on.</>}</td></tr>
+      <tr><td>On-time runs (free, recommended)</td><td>Create a free job at <b>cron-job.org</b> that opens the address below every 5 minutes. Posts then go out within 5 minutes of their time.</td></tr>
+    </tbody></table>
+    {sc?.url ? <div className="mk-row" style={{ marginTop: 8 }}><code style={{ wordBreak: "break-all", fontSize: 12, flex: 1, minWidth: 0 }}>{sc.url}</code><button type="button" className="mk-btn sm ghost" onClick={() => { navigator.clipboard?.writeText(sc.url).then(() => setCopied(true)).catch(() => {}); }}>{copied ? "Copied ✓" : "Copy"}</button></div>
+      : <p className="mk-mini">Only marketing admins can see the scheduler address.</p>}
+    <p className="mk-mini">Keep this address private: anyone with it can trigger publishing of posts that are already scheduled.</p>
+  </div>;
   const rules = [
-    ["Publish scheduled posts automatically", "Needs connected accounts and a scheduler (Vercel Cron)."],
     ["Approval notifications to managers", "Needs an email provider key (e.g. RESEND_API_KEY)."],
     ["Failed-publishing alerts", "Needs connected accounts."],
     ["New store order → notify sales team", "Needs an email provider key."],
@@ -441,6 +456,7 @@ function Automation({ s }: { s: State }) {
     ["Webhooks (n8n / Zapier)", "Needs a webhook URL to send events to."],
   ];
   return <><H t="Automation" sub="Each rule will have on/off control, an execution log and failure handling." />
+    {autoCard}
     <div className="mk-card"><table className="mk-t"><thead><tr><th>Rule</th><th>Status</th><th>What it needs</th></tr></thead><tbody>
       {rules.map(([r, n]) => <tr key={r}><td>{r}</td><td><span className="mk-pill st-draft">Not active</span></td><td className="mk-mini">{n}</td></tr>)}
     </tbody></table><p className="mk-mini">These are switched off on purpose: none can run safely until its connection exists. Recent manual workflow actions are in Settings &amp; Logs ({s.activity.length}).</p></div></>;
