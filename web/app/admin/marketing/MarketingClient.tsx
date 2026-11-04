@@ -20,6 +20,7 @@ type State = {
   automation?: { orderAlert: boolean; orderConfirm: boolean; orderStatus: boolean; approval: boolean; publishFail: boolean; alertEmail: string };
   emailReady?: boolean;
   emailLog?: { to: string; subject: string; kind: string; ok: boolean; error: string; at: string }[];
+  reach7?: { fetchedAt?: string; reached: number; views: number } | null;
   scheduler?: { url: string; hasCronSecret: boolean; last: { at?: string; published?: number; failed?: number } };
 };
 type Mod = "dashboard" | "compose" | "calendar" | "inbox" | "analytics" | "brands" | "accounts" | "reports" | "strategy" | "feeds" | "automation" | "studio" | "bio" | "team" | "settings";
@@ -182,7 +183,7 @@ function Dashboard({ s, go, openCompose, can, run }: { s: State; go: (m: Mod) =>
       <div className="mk-card mk-kpi"><small>Posts published · this month</small><b>{pubMonth}</b></div>
       <div className="mk-card mk-kpi"><small>Link-in-bio clicks · all time</small><b>{s.links.reduce((a, l) => a + l.clicks, 0)}</b></div>
       <div className="mk-card mk-kpi"><small>Store orders · last 30 days</small><b>{s.site.orders30}</b><span>{peso(s.site.sales30)}</span></div>
-      <div className="mk-card mk-kpi"><small>Social reach · last 7 days</small><b>—</b><span className="mk-na">Needs connected accounts</span></div>
+      <div className="mk-card mk-kpi"><small>Facebook reach · last 7 days</small><b>{s.reach7 ? s.reach7.reached.toLocaleString("en-PH") : "—"}</b><span className={s.reach7 ? "mk-src" : "mk-na"}>{s.reach7 ? `${s.reach7.views.toLocaleString("en-PH")} views · open Analytics to refresh` : "Open Analytics → 7 days to load"}</span></div>
     </div>
     <div className="mk-grid2">
       <div className="mk-card"><div className="mk-label between">Recent posts <button type="button" className="mk-link" onClick={() => go("calendar")}>View all →</button></div>
@@ -379,9 +380,37 @@ function Analytics({ s }: { s: State }) {
       <div className="mk-card"><div className="mk-label">Pipeline by status</div>{byStatus.map(([k, n]) => <div key={k} className="mk-hb"><Pill st={k} /><div className="mk-hbar"><i style={{ width: (n / Math.max(1, s.posts.length)) * 100 + "%" }} /></div><b>{n}</b></div>)}
         <div className="mk-label" style={{ marginTop: 14 }}>Posts planned per platform</div>{plat.map(([k, n]) => <div key={k} className="mk-hb"><span style={{ width: 120 }}>{PLAT[k]}</span><div className="mk-hbar"><i style={{ width: (n / Math.max(1, s.posts.length)) * 100 + "%" }} /></div><b>{n}</b></div>)}</div>
     </div>
-    <div className="mk-card"><div className="mk-label">Social metrics</div><table className="mk-t"><thead><tr><th>Metric</th><th>Value</th><th>Status</th></tr></thead><tbody>
-      {["Reach", "Impressions", "Engagement", "Followers", "Profile visits", "Click-through rate", "Video views"].map((m) => <tr key={m}><td>{m}</td><td>—</td><td className="mk-na">Unavailable: no connected account</td></tr>)}
-    </tbody></table></div></>;
+    <FacebookInsights s={s} /></>;
+}
+
+type Ins = { days: number; fetchedAt: string; pages: { page: string; followers: number | null; views: number | null; reached: number | null; engagements: number | null; daily: { date: string; value: number }[]; posts: { id: string; text: string; at: string; link: string; views: number | null; reactions: number; comments: number; shares: number }[]; errors: string[] }[] };
+const n = (v: number | null) => (v == null ? "—" : v.toLocaleString("en-PH"));
+function FacebookInsights({ s }: { s: State }) {
+  const connected = (s.accounts ?? []).some((a) => a.platform === "facebook" && a.status === "ok");
+  const [days, setDays] = useState(28); const [d, setD] = useState<Ins | null>(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const load = useCallback(async (refresh = false) => { setBusy(true); setErr(""); try { setD(await call({ action: "insights", days, refresh })); } catch (e) { setErr((e as Error).message); } setBusy(false); }, [days]);
+  useEffect(() => { if (connected) load(); }, [connected, load]);
+  if (!connected) return <div className="mk-card"><div className="mk-label">Facebook analytics</div><p className="mk-mini">Connect your Facebook Page in Social Accounts to see real reach, engagement and followers here.</p></div>;
+  return <div className="mk-card"><div className="mk-row between"><div className="mk-label" style={{ margin: 0 }}>Facebook analytics · live from Meta</div>
+      <div className="mk-row">{[7, 28, 90].map((x) => <button key={x} type="button" className={"mk-btn sm" + (days === x ? "" : " ghost")} onClick={() => setDays(x)}>{x} days</button>)}<button type="button" className="mk-btn sm ghost" disabled={busy} onClick={() => load(true)}>{busy ? "Loading…" : "↻ Refresh"}</button></div></div>
+    {err && <p className="mk-warn">{err}</p>}
+    {d && <p className="mk-mini">Updated {fmt(d.fetchedAt)} · cached for 30 minutes · "—" means Meta didn't return that number (reason shown below).</p>}
+    {d?.pages.map((p) => { const max = Math.max(1, ...p.daily.map((x) => x.value)); return <div key={p.page} style={{ marginTop: 14 }}>
+      <b>{p.page}</b>
+      <div className="mk-grid4" style={{ marginTop: 8 }}>
+        <div className="mk-kpi mk-stat"><small>Followers</small><b>{n(p.followers)}</b></div>
+        <div className="mk-kpi mk-stat"><small>Views · {d.days}d</small><b>{n(p.views)}</b></div>
+        <div className="mk-kpi mk-stat"><small>People reached · {d.days}d</small><b>{n(p.reached)}</b></div>
+        <div className="mk-kpi mk-stat"><small>Engagements · {d.days}d</small><b>{n(p.engagements)}</b></div>
+      </div>
+      {p.daily.length > 0 && <><div className="mk-label" style={{ marginTop: 12 }}>Daily views</div><div className="mk-spark" role="img" aria-label={`Daily views over ${d.days} days`}>{p.daily.map((x) => <i key={x.date} title={`${x.date}: ${x.value}`} style={{ height: `${(x.value / max) * 100}%` }} />)}</div></>}
+      {p.posts.length > 0 && <><div className="mk-label" style={{ marginTop: 12 }}>Recent posts</div><div style={{ overflowX: "auto" }}><table className="mk-t"><thead><tr><th>Post</th><th>Date</th><th>Views</th><th>Reactions</th><th>Comments</th><th>Shares</th></tr></thead><tbody>
+        {p.posts.map((x) => <tr key={x.id}><td>{x.link ? <a className="mk-link" href={x.link} target="_blank" rel="noopener">{x.text}</a> : x.text}</td><td>{new Date(x.at).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</td><td>{n(x.views)}</td><td>{x.reactions}</td><td>{x.comments}</td><td>{x.shares}</td></tr>)}
+      </tbody></table></div></>}
+      {p.errors.length > 0 && <div className="mk-note" style={{ marginTop: 10 }}>{p.errors.map((e, i) => <div key={i}>⚠ {e}</div>)}<div style={{ marginTop: 6 }}>Missing permissions? Add <code>read_insights</code> and <code>pages_read_engagement</code> to your Meta app's Login configuration, then Reconnect in Social Accounts.</div></div>}
+    </div>; })}
+    {d && !d.pages.length && <p className="mk-mini">No Facebook Pages connected.</p>}
+  </div>;
 }
 
 function Brands({ s, can, run }: { s: State; can: Can; run: Run }) {
@@ -793,6 +822,7 @@ function Style() {
 .mk-chat{display:grid;gap:8px;margin:12px 0;max-height:46vh;overflow:auto;padding:4px}.mk-bubble{max-width:80%;background:var(--bg2);border-radius:12px;padding:9px 12px;font-size:14px;white-space:pre-wrap}.mk-bubble.mine{justify-self:end;background:rgba(202,147,50,.2)}.mk-bubble small{display:block;color:var(--tx2);font-size:11px;margin-top:4px}
 @media (max-width:900px){.mk-inbox{grid-template-columns:1fr}}
 .mk-switch{position:relative;display:inline-block;width:40px;height:22px}.mk-switch input{opacity:0;width:0;height:0}.mk-switch span{position:absolute;inset:0;background:#334155;border-radius:22px;cursor:pointer;transition:.2s}.mk-switch span:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.mk-switch input:checked+span{background:var(--gold)}.mk-switch input:checked+span:before{transform:translateX(18px)}.mk-switch input:focus-visible+span{outline:2px solid var(--sand)}
+.mk-spark{display:flex;align-items:flex-end;gap:2px;height:70px;background:var(--bg2);border-radius:8px;padding:6px}.mk-spark i{flex:1;min-width:2px;background:linear-gradient(180deg,var(--sand),var(--gold));border-radius:2px 2px 0 0}
 .mk-studio-stage{background:var(--bg2);border-radius:10px;padding:12px;display:grid;place-items:center}.mk-canvas{width:100%;max-width:100%;max-height:70vh;height:auto;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4)}.mk-mitem{display:grid;gap:6px}
 .mk-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}.mk-media img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
 .mk-x{all:unset;cursor:pointer;color:#fda4af;font-size:18px;padding:0 6px}

@@ -3,6 +3,7 @@ import { originOf } from "@/lib/reset";
 import { metaReady, linkedinReady } from "@/lib/social";
 import { publishPost, cronToken } from "@/lib/publish";
 import { loadInbox, sendReply } from "@/lib/inbox";
+import { loadInsights } from "@/lib/insights";
 import { autoSettings, sendMail, type AutoSettings } from "@/lib/notify";
 import { notifyApproval } from "@/lib/notify";
 import { bad, ok } from "@/lib/http";
@@ -45,6 +46,7 @@ async function loadState(u: MkUser) {
     results: (await sql`select post_id, platform, ok, remote_id, error, created_at from mk_post_results order by id desc limit 500`.catch(() => [])).map((r) => ({ post_id: r.post_id, platform: r.platform, ok: r.ok, remote_id: r.remote_id ?? "", error: r.error ?? "", at: new Date(r.created_at).toISOString() })),
     connectReady: { facebook: metaReady(), linkedin: linkedinReady() },
     automation: await autoSettings(),
+    reach7: await getSetting<{ fetchedAt?: string; pages?: { reached: number | null; views: number | null }[] }>("mk_insights_7", {}).then((r) => (r.pages?.length ? { fetchedAt: r.fetchedAt, reached: r.pages.reduce((a, p) => a + (p.reached ?? 0), 0), views: r.pages.reduce((a, p) => a + (p.views ?? 0), 0) } : null)),
     emailReady: !!process.env.RESEND_API_KEY,
     emailLog: (await sql`select recipient, subject, kind, ok, error, created_at from mk_email_log order by id desc limit 40`.catch(() => [])).map((e) => ({ to: e.recipient, subject: e.subject, kind: e.kind, ok: e.ok, error: e.error ?? "", at: new Date(e.created_at).toISOString() })),
     media: (await sql`select id, url, title, width, height, created_at from mk_media order by id desc limit 200`.catch(() => [])).map((m) => ({ id: m.id, url: m.url, title: m.title, width: m.width, height: m.height, at: new Date(m.created_at).toISOString() })),
@@ -207,6 +209,10 @@ export async function POST(req: Request) {
       if (!need("manager")) return deny();
       await sql`delete from mk_media where id = ${Number(b.id)}`;
       return ok();
+    }
+    case "insights": {
+      const days = [7, 28, 90].includes(Number(b.days)) ? Number(b.days) : 28;
+      return ok(await loadInsights(days, !!b.refresh));
     }
     case "inbox": {
       return ok(await loadInbox());
