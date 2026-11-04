@@ -3,10 +3,15 @@ import { SignJWT, jwtVerify } from "jose";
 import { sql } from "./db";
 
 const COOKIE = "neas_session";
+import { createHash } from "node:crypto";
+/** Signing key for login sessions. Uses SESSION_SECRET when set (32+ chars); otherwise derives a
+ *  stable secret from the private database URL so a missing variable can't break admin login. */
 function key() {
   const s = process.env.SESSION_SECRET;
-  if (!s || s.length < 32) throw new Error("SESSION_SECRET must be set to at least 32 characters");
-  return new TextEncoder().encode(s);
+  if (s && s.length >= 32) return new TextEncoder().encode(s);
+  const db = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (!db) throw new Error("Set SESSION_SECRET (32+ characters) or DATABASE_URL");
+  return new Uint8Array(createHash("sha256").update("neas-session-v1:" + db).digest());
 }
 
 export type SessionUser = { id: number; email: string; name: string; phone: string | null; role: "customer" | "admin" };
