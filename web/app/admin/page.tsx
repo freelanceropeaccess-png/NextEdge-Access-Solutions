@@ -4,6 +4,7 @@ import { sql, listProducts, getMarkup } from "@/lib/db";
 import AdminClient from "./AdminClient";
 import SettingsPanel from "./SettingsPanel";
 import SheetSync from "./SheetSync";
+import AdminShell from "./AdminShell";
 import { getSetting, getCategoryMarkup, DEFAULT_SEO, DEFAULT_SOCIAL, DEFAULT_BUSINESS, type Seo, type Social, type Business } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -21,16 +22,17 @@ export default async function Admin() {
     getCategoryMarkup(), getSetting<Seo>("seo", DEFAULT_SEO), getSetting<Social>("social", DEFAULT_SOCIAL), getSetting<Business>("business", DEFAULT_BUSINESS),
     getSetting("sheet", { url: "https://docs.google.com/spreadsheets/d/1fl4TGP5Jl-yvVrN2hheb7DMzLVPVKbpfRQEPgC30Vik/edit?gid=1469242798#gid=1469242798", priceSource: "markup" as "markup" | "sheet", hideMissing: true, lastSync: "", lastResult: "" }),
   ]);
-  return <>
-  <div className="wrap" style={{ padding: "18px 20px 0" }}><a href="/admin/marketing" className="btn" style={{ background: "linear-gradient(135deg,#071D29,#172235)", color: "#EBC07E", border: "1px solid #CA9332", display: "inline-flex", gap: 8 }}>✦ Marketing Command Center →</a></div>
-  <AdminClient
+  const awaiting = orders.filter((o) => o.status === "awaiting_payment").length;
+  const AC = (v: "orders" | "products" | "customers") => <AdminClient view={v}
     markup={markup}
     categoryMarkup={catMarkup}
     products={products}
     orders={orders.map((o) => ({ id: o.id, reference: o.reference, status: o.status, total: Number(o.total), created_at: String(o.created_at), email: o.email, customer: o.customer_name, delivery: `${o.delivery_name} · ${o.delivery_phone} · ${o.delivery_address}`, notes: o.notes ?? "", items: items.filter((i) => i.order_id === o.id).map((i) => ({ name: i.name, code: i.code, quantity: i.quantity, unit_price: Number(i.unit_price) })) }))}
     customers={customers.map((c) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone ?? "", created_at: String(c.created_at), orders: c.orders }))}
-  />
-  <SheetSync initial={sheetCfg} />
-  <SettingsPanel seo={seo} social={social} business={business} />
-  </>;
+  />;
+  return <AdminShell adminName={user.name} counts={{ awaiting, customers: customers.length, products: products.length }} sections={{
+    orders: AC("orders"), products: AC("products"), customers: AC("customers"),
+    sheet: <SheetSync initial={sheetCfg} />,
+    website: <SettingsPanel seo={seo} social={social} business={business} />,
+  }} />;
 }

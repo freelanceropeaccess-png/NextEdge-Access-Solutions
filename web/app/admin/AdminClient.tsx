@@ -14,8 +14,9 @@ async function api(url: string, method: string, body: unknown) {
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "Save failed");
 }
 
-export default function AdminClient(props: { markup: number; categoryMarkup: Record<string, number>; products: Prod[]; orders: Order[]; customers: Cust[] }) {
-  const [tab, setTab] = useState<"orders" | "products" | "customers">("orders");
+export default function AdminClient(props: { markup: number; categoryMarkup: Record<string, number>; products: Prod[]; orders: Order[]; customers: Cust[]; view?: "orders" | "products" | "customers" }) {
+  const [ownTab, setTab] = useState<"orders" | "products" | "customers">("orders");
+  const tab = props.view ?? ownTab;
   const [markup, setMarkup] = useState(props.markup);
   const [products, setProducts] = useState(props.products);
   const [orders, setOrders] = useState(props.orders);
@@ -38,12 +39,13 @@ export default function AdminClient(props: { markup: number; categoryMarkup: Rec
   async function toggle(p: Prod) { try { await api(`/api/admin/products/${p.id}`, "PATCH", { active: !p.active }); setProducts((ps) => ps.map((x) => (x.id === p.id ? { ...x, active: !p.active } : x))); } catch (e) { flash((e as Error).message); } }
   async function setStatus(o: Order, status: string) { try { await api(`/api/admin/orders/${o.id}`, "PATCH", { status }); setOrders((os) => os.map((x) => (x.id === o.id ? { ...x, status } : x))); flash(`${o.reference} → ${status.replace("_", " ")}`); } catch (e) { flash((e as Error).message); } }
 
-  return <div className="wrap" style={{ padding: "34px 20px" }}>
-    <div className="eyebrow">Admin control panel</div><h1>NEAS Store Admin</h1>
-    <div style={{ display: "flex", gap: 8, margin: "16px 0", flexWrap: "wrap" }}>
+  return <div className={props.view ? "" : "wrap"} style={{ padding: props.view ? 0 : "34px 20px" }}>
+    {!props.view && <><div className="eyebrow">Admin control panel</div><h1>NEAS Store Admin</h1></>}
+    <div style={{ display: props.view ? "none" : "flex", gap: 8, margin: "16px 0", flexWrap: "wrap" }}>
       {([["orders", `Orders (${pending} awaiting payment)`], ["products", "Products & prices"], ["customers", `Customers (${props.customers.length})`]] as const).map(([k, l]) => <button key={k} type="button" className={"btn " + (tab === k ? "btn-primary" : "btn-ghost")} onClick={() => setTab(k)}>{l}</button>)}
       {msg && <span className="ok" role="status" style={{ alignSelf: "center" }}>{msg}</span>}
     </div>
+    {props.view && msg && <div className="admin-toast" role="status">{msg}</div>}
 
     {tab === "orders" && <div className="card" style={{ overflowX: "auto" }}>
       {!orders.length ? <p className="muted">No orders yet.</p> : <table className="t"><thead><tr><th>Reference</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody>
