@@ -25,14 +25,22 @@ export function decrypt(blob: string) {
   return Buffer.concat([d.update(data), d.final()]).toString("utf8");
 }
 
+/** Page permissions by default; Instagram ones only when META_INSTAGRAM=1 (after that use case is added). META_SCOPES overrides all. */
+export function metaScopes() {
+  if (process.env.META_SCOPES) return process.env.META_SCOPES.replace(/\s+/g, "");
+  const pages = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "business_management"];
+  return (process.env.META_INSTAGRAM === "1" ? [...pages, "instagram_basic", "instagram_content_publish"] : pages).join(",");
+}
 export const metaReady = () => !!(process.env.META_APP_ID && process.env.META_APP_SECRET);
 export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET);
 export const redirectUri = (origin: string, p: ConnectPlatform) => `${origin}/api/admin/social/callback/${p}`;
 
 export function authorizeUrl(p: ConnectPlatform, origin: string, state: string) {
   if (p === "facebook") {
-    const q = new URLSearchParams({ client_id: process.env.META_APP_ID!, redirect_uri: redirectUri(origin, p), state, response_type: "code",
-      scope: "pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish,business_management" });
+    const q = new URLSearchParams({ client_id: process.env.META_APP_ID!, redirect_uri: redirectUri(origin, p), state, response_type: "code" });
+    // Facebook Login for Business apps use a saved configuration; classic Facebook Login uses a scope list.
+    if (process.env.META_LOGIN_CONFIG_ID) q.set("config_id", process.env.META_LOGIN_CONFIG_ID);
+    else q.set("scope", metaScopes());
     return `https://www.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}/dialog/oauth?${q}`;
   }
   const q = new URLSearchParams({ response_type: "code", client_id: process.env.LINKEDIN_CLIENT_ID!, redirect_uri: redirectUri(origin, p), state, scope: "openid profile w_member_social" });

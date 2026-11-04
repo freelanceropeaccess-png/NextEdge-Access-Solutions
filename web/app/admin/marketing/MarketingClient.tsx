@@ -368,7 +368,9 @@ function Accounts({ s, can }: { s: State; can: Can }) {
       <table className="mk-t"><tbody>
         <tr><td>Facebook / Instagram: Valid OAuth Redirect URI</td><td><code>{origin}/api/admin/social/callback/facebook</code></td></tr>
         <tr><td>LinkedIn: Authorized redirect URL</td><td><code>{origin}/api/admin/social/callback/linkedin</code></td></tr>
-        <tr><td>Meta permissions to request</td><td><code>pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish, business_management</code></td></tr>
+        <tr><td>Meta app: use case to add</td><td><b>Manage everything on your Page</b> → Customize → Add <code>pages_show_list, pages_read_engagement, pages_manage_posts, business_management</code></td></tr>
+        <tr><td>Meta app: Instagram (optional)</td><td>Add the Instagram use case with <code>instagram_basic, instagram_content_publish</code>, then set <code>META_INSTAGRAM</code> = <code>1</code> in Vercel</td></tr>
+        <tr><td>Meta "Facebook Login for Business" apps</td><td>Create a Configuration (User access token, Pages assets, the permissions above) and set its ID as <code>META_LOGIN_CONFIG_ID</code></td></tr>
         <tr><td>LinkedIn products to add</td><td>"Sign In with LinkedIn using OpenID Connect" and "Share on LinkedIn"</td></tr>
       </tbody></table>
       <p className="mk-mini">A post is marked Published only after every chosen platform confirms it. If one fails, the post is marked Failed with the platform's reason, and pressing Publish now again only retries the ones that failed, so nothing is posted twice.</p></div></>;
