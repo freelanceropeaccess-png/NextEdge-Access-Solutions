@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { sql, listProducts } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import { bad, ok, str, BANK } from "@/lib/http";
+import { notifyNewOrder } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -47,5 +48,6 @@ export async function POST(req: Request) {
     for (const l of lines) await tx`insert into order_items (order_id, product_id, name, code, unit_price, quantity) values (${o.id}, ${l.id}, ${l.name}, ${l.code}, ${l.price}, ${l.qty})`;
     return o;
   });
+  await notifyNewOrder(order.id).catch(() => {});
   return ok({ order, bank: BANK });
 }

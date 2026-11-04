@@ -17,6 +17,9 @@ type State = {
   results?: { post_id: number; platform: string; ok: boolean; remote_id: string; error: string; at: string }[];
   connectReady?: { facebook: boolean; linkedin: boolean };
   media?: { id: number; url: string; title: string; width: number | null; height: number | null; at: string }[];
+  automation?: { orderAlert: boolean; orderConfirm: boolean; orderStatus: boolean; approval: boolean; publishFail: boolean; alertEmail: string };
+  emailReady?: boolean;
+  emailLog?: { to: string; subject: string; kind: string; ok: boolean; error: string; at: string }[];
   scheduler?: { url: string; hasCronSecret: boolean; last: { at?: string; published?: number; failed?: number } };
 };
 type Mod = "dashboard" | "compose" | "calendar" | "inbox" | "analytics" | "brands" | "accounts" | "reports" | "strategy" | "feeds" | "automation" | "studio" | "bio" | "team" | "settings";
@@ -109,7 +112,7 @@ export default function MarketingClient() {
         {mod === "reports" && <Reports s={s} />}
         {mod === "strategy" && <Strategy s={s} can={can} openCompose={openCompose} />}
         {mod === "feeds" && <Feeds s={s} can={can} run={run} openCompose={openCompose} />}
-        {mod === "automation" && <Automation s={s} />}
+        {mod === "automation" && <Automation s={s} can={can} run={run} />}
         {mod === "studio" && <Studio s={s} can={can} run={run} openCompose={openCompose} />}
         {mod === "bio" && <Bio s={s} can={can} run={run} />}
         {mod === "team" && <Team s={s} can={can} run={run} />}
@@ -483,7 +486,7 @@ function Feeds({ s, can, run, openCompose }: { s: State; can: Can; run: Run; ope
     </div></>;
 }
 
-function Automation({ s }: { s: State }) {
+function Automation({ s, can, run }: { s: State; can: Can; run: Run }) {
   const sc = s.scheduler; const connected = (s.accounts ?? []).some((a) => a.status === "ok");
   const due = s.posts.filter((p) => p.status === "scheduled").length;
   const [copied, setCopied] = useState(false);
@@ -500,18 +503,36 @@ function Automation({ s }: { s: State }) {
     <p className="mk-mini">Keep this address private: anyone with it can trigger publishing of posts that are already scheduled.</p>
   </div>;
   const rules = [
-    ["Approval notifications to managers", "Needs an email provider key (e.g. RESEND_API_KEY)."],
-    ["Failed-publishing alerts", "Needs connected accounts."],
-    ["New store order → notify sales team", "Needs an email provider key."],
     ["Weekly marketing report by email", "Needs an email provider key and Vercel Cron."],
     ["RSS-to-social drafts", "Available now manually in Feed Reader; automatic mode needs Vercel Cron."],
     ["Webhooks (n8n / Zapier)", "Needs a webhook URL to send events to."],
   ];
   return <><H t="Automation" sub="Each rule will have on/off control, an execution log and failure handling." />
     {autoCard}
+    <EmailAutomations s={s} can={can} run={run} />
     <div className="mk-card"><table className="mk-t"><thead><tr><th>Rule</th><th>Status</th><th>What it needs</th></tr></thead><tbody>
       {rules.map(([r, n]) => <tr key={r}><td>{r}</td><td><span className="mk-pill st-draft">Not active</span></td><td className="mk-mini">{n}</td></tr>)}
-    </tbody></table><p className="mk-mini">These are switched off on purpose: none can run safely until its connection exists. Recent manual workflow actions are in Settings &amp; Logs ({s.activity.length}).</p></div></>;
+    </tbody></table><p className="mk-mini">These aren't built yet. Recent manual workflow actions are in Settings &amp; Logs ({s.activity.length}).</p></div></>;
+}
+
+function EmailAutomations({ s, can, run }: { s: State; can: Can; run: Run }) {
+  const [a, setA] = useState(s.automation ?? { orderAlert: true, orderConfirm: true, orderStatus: true, approval: true, publishFail: true, alertEmail: "" });
+  const ro = !can("admin");
+  const rows: [keyof typeof a, string, string][] = [
+    ["orderAlert", "New store order → email the sales team", "Customer, items, total and a link to the order. Sent to the alert email below."],
+    ["orderConfirm", "Order confirmation → email the customer", "Order reference, items, total and delivery address."],
+    ["orderStatus", "Order status updates → email the customer", "When you mark an order Paid, Processing, Shipped, Completed or Cancelled."],
+    ["approval", "Post approvals → email managers and authors", "Managers hear when a post needs review; the author hears when it's approved or sent back."],
+    ["publishFail", "Failed publishing → email the alert address", "Includes the platform's reason so you can fix and retry."],
+  ];
+  return <div className="mk-card"><div className="mk-row between"><div className="mk-label" style={{ margin: 0 }}>Email automations</div>
+      <span className={"mk-pill " + (s.emailReady ? "st-published" : "st-failed")}>{s.emailReady ? "Email connected (Resend)" : "Needs RESEND_API_KEY"}</span></div>
+    <table className="mk-t" style={{ marginTop: 8 }}><tbody>{rows.map(([k, t, d]) => <tr key={k}><td style={{ width: 56 }}><label className="mk-switch"><input type="checkbox" disabled={ro} checked={!!a[k]} onChange={(e) => setA({ ...a, [k]: e.target.checked })} /><span /></label></td><td><b>{t}</b><div className="mk-mini">{d}</div></td></tr>)}</tbody></table>
+    <label className="mk-f" style={{ marginTop: 10 }}>Alert email (sales team)<input type="email" disabled={ro} value={a.alertEmail} onChange={(e) => setA({ ...a, alertEmail: e.target.value })} placeholder="Empty = your business email from Website settings" /></label>
+    {!ro && <div className="mk-row"><button type="button" className="mk-btn" onClick={() => run({ action: "saveAutomation", automation: a }, "Automations saved ✓")}>Save</button><button type="button" className="mk-btn ghost" onClick={() => run({ action: "testEmail" }, "Test email sent to you ✓")}>Send me a test email</button></div>}
+    <div className="mk-label" style={{ marginTop: 16 }}>Email log (last 40)</div>
+    {(s.emailLog ?? []).length ? <div className="mk-scroll" style={{ maxHeight: 260 }}><table className="mk-t"><tbody>{(s.emailLog ?? []).map((e, i) => <tr key={i}><td>{e.ok ? "✅" : "❌"}</td><td>{fmt(e.at)}</td><td>{e.subject}<div className="mk-mini">to {e.to}{e.error && <span className="mk-warn"> · {e.error}</span>}</div></td></tr>)}</tbody></table></div> : <p className="mk-mini">No emails sent yet.</p>}
+  </div>;
 }
 
 const SIZES: [string, number, number][] = [["Facebook post", 1080, 1080], ["Instagram post (4:5)", 1080, 1350], ["Story / Reel", 1080, 1920], ["LinkedIn post", 1200, 627], ["Facebook cover", 1640, 624], ["YouTube thumbnail", 1280, 720], ["Google Business photo", 720, 720]];
@@ -771,6 +792,7 @@ function Style() {
 .mk-inbox{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}.mk-ilist{padding:8px;max-height:70vh;overflow:auto}.mk-ithread{all:unset;box-sizing:border-box;display:grid;gap:4px;width:100%;padding:10px;border-radius:9px;cursor:pointer;border-bottom:1px solid var(--ln)}.mk-ithread:hover{background:rgba(255,255,255,.04)}.mk-ithread.sel{background:rgba(202,147,50,.15)}.mk-ithread small{color:var(--tx2);font-size:11px}
 .mk-chat{display:grid;gap:8px;margin:12px 0;max-height:46vh;overflow:auto;padding:4px}.mk-bubble{max-width:80%;background:var(--bg2);border-radius:12px;padding:9px 12px;font-size:14px;white-space:pre-wrap}.mk-bubble.mine{justify-self:end;background:rgba(202,147,50,.2)}.mk-bubble small{display:block;color:var(--tx2);font-size:11px;margin-top:4px}
 @media (max-width:900px){.mk-inbox{grid-template-columns:1fr}}
+.mk-switch{position:relative;display:inline-block;width:40px;height:22px}.mk-switch input{opacity:0;width:0;height:0}.mk-switch span{position:absolute;inset:0;background:#334155;border-radius:22px;cursor:pointer;transition:.2s}.mk-switch span:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.mk-switch input:checked+span{background:var(--gold)}.mk-switch input:checked+span:before{transform:translateX(18px)}.mk-switch input:focus-visible+span{outline:2px solid var(--sand)}
 .mk-studio-stage{background:var(--bg2);border-radius:10px;padding:12px;display:grid;place-items:center}.mk-canvas{width:100%;max-width:100%;max-height:70vh;height:auto;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4)}.mk-mitem{display:grid;gap:6px}
 .mk-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}.mk-media img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
 .mk-x{all:unset;cursor:pointer;color:#fda4af;font-size:18px;padding:0 6px}

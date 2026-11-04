@@ -92,5 +92,7 @@ await sql`create table if not exists mk_media (
 await sql`create table if not exists mk_inbox_meta (
   thread_key text primary key, status text not null default 'open', assigned_to int references users(id) on delete set null,
   note text, updated_by int references users(id) on delete set null, updated_at timestamptz not null default now())`;
+await sql`create table if not exists mk_email_log (
+  id serial primary key, recipient text not null, subject text not null, kind text not null, ok boolean not null, error text, created_at timestamptz not null default now())`;
 console.log("[migrate] Database ready.");
 await sql.end();

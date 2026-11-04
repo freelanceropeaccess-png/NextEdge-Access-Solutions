@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { sql } from "./db";
 import { publishTo } from "./social";
 import { logActivity } from "./marketing";
+import { notifyApproval } from "./notify";
 
 export type PublishResult = { platform: string; name: string; ok: boolean; error?: string };
 const AUTO = ["facebook", "instagram", "linkedin"];
@@ -35,6 +36,7 @@ export async function publishPost(id: number, userId: number | null, origin: str
   const allOk = out.length > 0 && out.every((r) => r.ok);
   await sql`update mk_posts set status = ${allOk ? "published" : "failed"}, updated_at = now() where id = ${id}`;
   await logActivity(userId as number, (userId ? "" : "auto-") + (allOk ? "published" : "publish failed"), out.map((r) => `${r.platform}${r.name ? " (" + r.name + ")" : ""}: ${r.ok ? "ok" : r.error}`).join("; "), id);
+  if (!allOk) await notifyApproval(id, "failed", out.filter((r) => !r.ok).map((r) => `${r.platform}: ${r.error}`).join("; ")).catch(() => {});
   return { allOk, results: out };
 }
 

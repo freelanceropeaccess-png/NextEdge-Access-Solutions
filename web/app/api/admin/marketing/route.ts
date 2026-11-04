@@ -3,6 +3,8 @@ import { originOf } from "@/lib/reset";
 import { metaReady, linkedinReady } from "@/lib/social";
 import { publishPost, cronToken } from "@/lib/publish";
 import { loadInbox, sendReply } from "@/lib/inbox";
+import { autoSettings, sendMail, type AutoSettings } from "@/lib/notify";
+import { notifyApproval } from "@/lib/notify";
 import { bad, ok } from "@/lib/http";
 import { getSetting, setSetting } from "@/lib/settings";
 import {
@@ -42,6 +44,9 @@ async function loadState(u: MkUser) {
     accounts: (await sql`select id, platform, name, status, last_error, expires_at, updated_at from mk_social_accounts order by platform, name`.catch(() => [])).map((a) => ({ id: a.id, platform: a.platform, name: a.name, status: a.status, error: a.last_error ?? "", expires_at: a.expires_at ? new Date(a.expires_at).toISOString() : null })),
     results: (await sql`select post_id, platform, ok, remote_id, error, created_at from mk_post_results order by id desc limit 500`.catch(() => [])).map((r) => ({ post_id: r.post_id, platform: r.platform, ok: r.ok, remote_id: r.remote_id ?? "", error: r.error ?? "", at: new Date(r.created_at).toISOString() })),
     connectReady: { facebook: metaReady(), linkedin: linkedinReady() },
+    automation: await autoSettings(),
+    emailReady: !!process.env.RESEND_API_KEY,
+    emailLog: (await sql`select recipient, subject, kind, ok, error, created_at from mk_email_log order by id desc limit 40`.catch(() => [])).map((e) => ({ to: e.recipient, subject: e.subject, kind: e.kind, ok: e.ok, error: e.error ?? "", at: new Date(e.created_at).toISOString() })),
     media: (await sql`select id, url, title, width, height, created_at from mk_media order by id desc limit 200`.catch(() => [])).map((m) => ({ id: m.id, url: m.url, title: m.title, width: m.width, height: m.height, at: new Date(m.created_at).toISOString() })),
     scheduler: { url: u.role === "admin" ? `${process.env.SITE_URL?.replace(/\/$/, "") || "https://www.nextedge-access-solutions.com"}/api/cron/publish?token=${cronToken()}` : "", hasCronSecret: !!process.env.CRON_SECRET, last: await getSetting<{ at?: string; published?: number; failed?: number }>("mk_cron_last", {}) },
     aiReady: !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY),
@@ -104,6 +109,8 @@ export async function POST(req: Request) {
       if (to === "scheduled" && !cur.scheduled_at) return bad("Set a date and time before scheduling.");
       await sql`update mk_posts set status=${to}, updated_at=now() where id=${id}`;
       await logActivity(u.id, `${cur.status} → ${to}`, txt(b.note, 300) || cur.title, id);
+      const ev = to === "pending" ? "pending" : cur.status === "pending" && to === "approved" ? "approved" : cur.status === "pending" && to === "draft" ? "sent_back" : null;
+      if (ev) await notifyApproval(id, ev, txt(b.note, 300)).catch(() => {});
       return ok();
     }
     case "reschedule": {
@@ -223,6 +230,21 @@ export async function POST(req: Request) {
       await sql`insert into mk_inbox_meta (thread_key, status, assigned_to, note, updated_by) values (${key}, ${status}, ${assigned}, ${txt(b.note, 2000) || null}, ${u.id})
         on conflict (thread_key) do update set status = excluded.status, assigned_to = excluded.assigned_to, note = excluded.note, updated_by = excluded.updated_by, updated_at = now()`;
       return ok();
+    }
+    case "saveAutomation": {
+      if (!need("admin")) return deny();
+      const x = b.automation ?? {};
+      const email = txt(x.alertEmail, 320).trim();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return bad("Enter a valid alert email, or leave it empty to use your business email.");
+      const v: AutoSettings = { orderAlert: !!x.orderAlert, orderConfirm: !!x.orderConfirm, orderStatus: !!x.orderStatus, approval: !!x.approval, publishFail: !!x.publishFail, alertEmail: email };
+      await setSetting("mk_auto", v);
+      await logActivity(u.id, "updated email automations");
+      return ok();
+    }
+    case "testEmail": {
+      if (!need("admin")) return deny();
+      const sent = await sendMail(u.email, "NEAS email automations test", `<p>This is a test from your Marketing Command Center. Email automations are working.</p>`, "test");
+      return sent ? ok() : bad("The test email couldn't be sent. See the email log below for the reason.");
     }
     case "disconnect": {
       if (!need("manager")) return deny();
