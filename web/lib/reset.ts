@@ -24,10 +24,12 @@ export async function useResetToken(token: string, password: string): Promise<{ 
   return { ok: true, role: r.role };
 }
 
+const DEFAULT_FROM = "NEAS <no-reply@nextedge-access-solutions.com>";
+
 /** Sends email through Resend when RESEND_API_KEY and MAIL_FROM are set. Returns false if email isn't configured or failed. */
 export async function sendResetEmail(to: string, link: string): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY, from = process.env.MAIL_FROM;
-  if (!key || !from) return false;
+  const key = process.env.RESEND_API_KEY, from = process.env.MAIL_FROM || DEFAULT_FROM;
+  if (!key) return false;
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST", headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
@@ -38,7 +40,7 @@ export async function sendResetEmail(to: string, link: string): Promise<boolean>
   } catch { return false; }
 }
 
-export const emailConfigured = () => !!(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
+export const emailConfigured = () => !!process.env.RESEND_API_KEY;
 
 export function originOf(req: Request) {
   const env = process.env.SITE_URL?.replace(/\/$/, "");
