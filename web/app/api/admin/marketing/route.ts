@@ -41,6 +41,7 @@ async function loadState(u: MkUser) {
     accounts: (await sql`select id, platform, name, status, last_error, expires_at, updated_at from mk_social_accounts order by platform, name`.catch(() => [])).map((a) => ({ id: a.id, platform: a.platform, name: a.name, status: a.status, error: a.last_error ?? "", expires_at: a.expires_at ? new Date(a.expires_at).toISOString() : null })),
     results: (await sql`select post_id, platform, ok, remote_id, error, created_at from mk_post_results order by id desc limit 500`.catch(() => [])).map((r) => ({ post_id: r.post_id, platform: r.platform, ok: r.ok, remote_id: r.remote_id ?? "", error: r.error ?? "", at: new Date(r.created_at).toISOString() })),
     connectReady: { facebook: metaReady(), linkedin: linkedinReady() },
+    media: (await sql`select id, url, title, width, height, created_at from mk_media order by id desc limit 200`.catch(() => [])).map((m) => ({ id: m.id, url: m.url, title: m.title, width: m.width, height: m.height, at: new Date(m.created_at).toISOString() })),
     scheduler: { url: u.role === "admin" ? `${process.env.SITE_URL?.replace(/\/$/, "") || "https://www.nextedge-access-solutions.com"}/api/cron/publish?token=${cronToken()}` : "", hasCronSecret: !!process.env.CRON_SECRET, last: await getSetting<{ at?: string; published?: number; failed?: number }>("mk_cron_last", {}) },
     aiReady: !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY),
     site: { orders30: orders[0].n, sales30: orders[0].total, products: counts[0].products, customers: counts[0].customers },
@@ -185,6 +186,19 @@ export async function POST(req: Request) {
         }).filter((i) => i.title);
         return ok({ items });
       } catch (e) { return bad("Couldn't read that feed: " + (e as Error).message); }
+    }
+    case "saveMedia": {
+      if (!need("editor")) return deny();
+      const url = String(b.url ?? "");
+      if (!/^\/api\/img\/[a-f0-9]{16}$/.test(url)) return bad("Upload the image first.");
+      await sql`insert into mk_media (url, title, width, height, created_by) values (${url}, ${txt(b.title, 160)}, ${Number(b.width) || null}, ${Number(b.height) || null}, ${u.id})`;
+      await logActivity(u.id, "created graphic", txt(b.title, 160));
+      return ok();
+    }
+    case "deleteMedia": {
+      if (!need("manager")) return deny();
+      await sql`delete from mk_media where id = ${Number(b.id)}`;
+      return ok();
     }
     case "disconnect": {
       if (!need("manager")) return deny();

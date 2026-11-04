@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Role = "viewer" | "editor" | "manager" | "admin";
 type Status = "draft" | "pending" | "approved" | "scheduled" | "published" | "failed";
@@ -16,6 +16,7 @@ type State = {
   accounts?: { id: number; platform: string; name: string; status: string; error: string; expires_at: string | null }[];
   results?: { post_id: number; platform: string; ok: boolean; remote_id: string; error: string; at: string }[];
   connectReady?: { facebook: boolean; linkedin: boolean };
+  media?: { id: number; url: string; title: string; width: number | null; height: number | null; at: string }[];
   scheduler?: { url: string; hasCronSecret: boolean; last: { at?: string; published?: number; failed?: number } };
 };
 type Mod = "dashboard" | "compose" | "calendar" | "inbox" | "analytics" | "brands" | "accounts" | "reports" | "strategy" | "feeds" | "automation" | "studio" | "bio" | "team" | "settings";
@@ -109,7 +110,7 @@ export default function MarketingClient() {
         {mod === "strategy" && <Strategy s={s} can={can} openCompose={openCompose} />}
         {mod === "feeds" && <Feeds s={s} can={can} run={run} openCompose={openCompose} />}
         {mod === "automation" && <Automation s={s} />}
-        {mod === "studio" && <Studio s={s} />}
+        {mod === "studio" && <Studio s={s} can={can} run={run} openCompose={openCompose} />}
         {mod === "bio" && <Bio s={s} can={can} run={run} />}
         {mod === "team" && <Team s={s} can={can} run={run} />}
         {mod === "settings" && <Settings s={s} />}
@@ -462,15 +463,144 @@ function Automation({ s }: { s: State }) {
     </tbody></table><p className="mk-mini">These are switched off on purpose: none can run safely until its connection exists. Recent manual workflow actions are in Settings &amp; Logs ({s.activity.length}).</p></div></>;
 }
 
-function Studio({ s }: { s: State }) {
-  const media = s.posts.filter((p) => p.media_url).map((p) => ({ url: p.media_url, title: p.title }));
-  const sizes = [["Facebook post", "1080 × 1080"], ["Facebook cover", "1640 × 624"], ["Instagram post", "1080 × 1350"], ["Instagram / TikTok story & reel", "1080 × 1920"], ["LinkedIn post", "1200 × 627"], ["YouTube thumbnail", "1280 × 720"], ["Google Business photo", "720 × 720"]];
-  return <><H t="AI Creative Studio" sub="Media used in your posts, brand assets and platform sizes." />
+const SIZES: [string, number, number][] = [["Facebook post", 1080, 1080], ["Instagram post (4:5)", 1080, 1350], ["Story / Reel", 1080, 1920], ["LinkedIn post", 1200, 627], ["Facebook cover", 1640, 624], ["YouTube thumbnail", 1280, 720], ["Google Business photo", 720, 720]];
+const TEMPLATES: [string, string][] = [["band", "Photo + headline band"], ["bold", "Bold headline"], ["spot", "Product spotlight"]];
+
+function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number) {
+  const out: string[] = [];
+  for (const para of text.split("\n")) {
+    let line = "";
+    for (const w of para.split(/\s+/)) { const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }
+    out.push(line);
+  }
+  return out.filter((l, i, a) => l || i < a.length - 1);
+}
+function cover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+  const r = Math.max(w / img.width, h / img.height), iw = img.width * r, ih = img.height * r;
+  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+}
+function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+
+function drawGraphic(c: HTMLCanvasElement, o: { W: number; H: number; tpl: string; head: string; sub: string; cta: string; logo: boolean }, img: HTMLImageElement | null, logo: HTMLImageElement | null) {
+  const { W, H } = o; c.width = W; c.height = H; const ctx = c.getContext("2d")!;
+  const u = Math.min(W, H) / 100, pad = 6 * u, NAVY = "#071D29", GOLD = "#CA9332", SAND = "#EBC07E", ORANGE = "#F97316";
+  const font = (wt: number, px: number) => `${wt} ${px}px Inter, "Segoe UI", Arial, sans-serif`;
+  const text = (t: string, x: number, y: number, maxW: number, px: number, wt: number, color: string, lh = 1.15, align: CanvasTextAlign = "left") => {
+    ctx.font = font(wt, px); ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "top";
+    const lines = wrap(ctx, t, maxW); lines.forEach((l, i) => ctx.fillText(l, x, y + i * px * lh)); return y + lines.length * px * lh;
+  };
+  const ctaPill = (x: number, y: number, align: "left" | "center" = "left") => {
+    if (!o.cta) return; ctx.font = font(800, 3.6 * u); const tw = ctx.measureText(o.cta).width, h = 7.5 * u, w = tw + 6 * u, px = align === "center" ? x - w / 2 : x;
+    ctx.fillStyle = ORANGE; rr(ctx, px, y, w, h, h / 2); ctx.fill(); ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(o.cta, px + 3 * u, y + h / 2 + 1);
+  };
+  const drawLogo = (x: number, y: number, size: number) => { if (!o.logo || !logo) return; ctx.save(); ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2); ctx.closePath(); ctx.fillStyle = "#fff"; ctx.fill(); ctx.clip(); ctx.drawImage(logo, x, y, size, size); ctx.restore(); };
+  const wide = W / H > 1.6;
+  if (o.tpl === "spot") {
+    ctx.fillStyle = "#F7F4EE"; ctx.fillRect(0, 0, W, H);
+    const ih = wide ? H - 2 * pad : H * 0.58, iw = wide ? W * 0.5 : W - 2 * pad;
+    ctx.save(); rr(ctx, pad, pad, iw, ih, 3 * u); ctx.clip(); if (img) cover(ctx, img, pad, pad, iw, ih); else { ctx.fillStyle = "#E7E0D3"; ctx.fillRect(pad, pad, iw, ih); } ctx.restore();
+    const tx = wide ? pad * 2 + iw : pad, ty = wide ? pad * 1.5 : pad * 1.6 + ih, tw = wide ? W - tx - pad : W - 2 * pad;
+    ctx.fillStyle = GOLD; ctx.fillRect(tx, ty, 10 * u, 0.9 * u);
+    let y = text(o.head, tx, ty + 2.5 * u, tw, (wide ? 6 : 6.4) * u, 800, NAVY);
+    if (o.sub) y = text(o.sub, tx, y + 1.5 * u, tw, 3.4 * u, 500, "#3b4a5a", 1.3);
+    ctaPill(tx, Math.min(y + 3 * u, H - pad - 7.5 * u));
+    drawLogo(W - pad - 11 * u, H - pad - 11 * u, 11 * u);
+    return;
+  }
+  ctx.fillStyle = NAVY; ctx.fillRect(0, 0, W, H);
+  if (img) { if (o.tpl === "bold") ctx.globalAlpha = 0.28; cover(ctx, img, 0, 0, W, H); ctx.globalAlpha = 1; }
+  if (o.tpl === "bold") {
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(7,29,41,.55)"); g.addColorStop(1, "rgba(7,29,41,.92)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.font = font(900, 8 * u); const lines = wrap(ctx, o.head, W - 2 * pad), hh = lines.length * 8 * u * 1.1, total = hh + (o.sub ? 12 * u : 0) + (o.cta ? 12 * u : 0);
+    let y = (H - total) / 2;
+    y = text(o.head, W / 2, y, W - 2 * pad, 8 * u, 900, "#fff", 1.1, "center");
+    ctx.fillStyle = GOLD; ctx.fillRect(W / 2 - 8 * u, y + 2 * u, 16 * u, 0.9 * u);
+    if (o.sub) y = text(o.sub, W / 2, y + 5 * u, W - 3 * pad, 3.6 * u, 500, SAND, 1.3, "center");
+    ctaPill(W / 2, y + 4 * u, "center");
+    drawLogo(pad, pad, 12 * u);
+    return;
+  }
+  // band
+  const bandTop = wide ? 0 : H * 0.5;
+  const g = wide ? ctx.createLinearGradient(0, 0, W, 0) : ctx.createLinearGradient(0, bandTop - 15 * u, 0, H);
+  g.addColorStop(0, wide ? "rgba(7,29,41,.95)" : "rgba(7,29,41,0)"); g.addColorStop(wide ? 0.55 : 0.25, "rgba(7,29,41,.88)"); g.addColorStop(1, wide ? "rgba(7,29,41,0)" : "rgba(7,29,41,.97)");
+  ctx.fillStyle = g; ctx.fillRect(0, wide ? 0 : bandTop - 15 * u, W, wide ? H : H - bandTop + 15 * u);
+  const tw = wide ? W * 0.55 : W - 2 * pad;
+  ctx.font = font(800, 7 * u); const hl = wrap(ctx, o.head, tw).length;
+  const blockH = hl * 7 * u * 1.12 + (o.sub ? 10 * u : 0) + (o.cta ? 11 * u : 0);
+  let y = wide ? (H - blockH) / 2 : H - pad - blockH;
+  ctx.fillStyle = GOLD; ctx.fillRect(pad, y - 3 * u, 12 * u, 0.9 * u);
+  y = text(o.head, pad, y, tw, 7 * u, 800, "#fff", 1.12);
+  if (o.sub) y = text(o.sub, pad, y + 1.5 * u, tw, 3.4 * u, 500, SAND, 1.3);
+  ctaPill(pad, y + 3 * u);
+  drawLogo(W - pad - 12 * u, pad, 12 * u);
+}
+
+function Studio({ s, can, run, openCompose }: { s: State; can: Can; run: Run; openCompose: (p?: Partial<Post>) => void }) {
+  const [size, setSize] = useState(0); const [tpl, setTpl] = useState("band");
+  const [head, setHead] = useState("Safe, certified rope access for high-rise facades");
+  const [sub, setSub] = useState("IRATA-certified technicians · Metro Manila & nationwide");
+  const [cta, setCta] = useState("WhatsApp +63 991 426 5886"); const [useLogo, setUseLogo] = useState(true);
+  const [img, setImg] = useState<HTMLImageElement | null>(null); const [logo, setLogo] = useState<HTMLImageElement | null>(null);
+  const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false); const [topic, setTopic] = useState("");
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [, W, GH] = SIZES[size];
+  useEffect(() => { const l = new Image(); l.onload = () => setLogo(l); l.src = "/img/logo.png"; }, []);
+  useEffect(() => { if (ref.current) drawGraphic(ref.current, { W, H: GH, tpl, head, sub, cta, logo: useLogo }, img, logo); }, [W, GH, tpl, head, sub, cta, useLogo, img, logo]);
+  const loadFile = (f?: File) => { if (!f) return; if (!/^image\//.test(f.type)) { setMsg("Choose a JPG or PNG photo."); return; } const im = new Image(); im.onload = () => setImg(im); im.src = URL.createObjectURL(f); };
+  const pickExisting = (url: string) => { const im = new Image(); im.onload = () => setImg(im); im.onerror = () => setMsg("That image can't be used here."); im.src = url; };
+  async function suggest() {
+    if (!topic.trim()) { setMsg("Type a topic for the AI first."); return; }
+    setBusy(true); setMsg("");
+    try { const r = await call({ action: "ai", task: "caption", topic: `Write ONE punchy headline (max 9 words) and, on a second line, ONE supporting line (max 12 words) for a social graphic about: ${topic}. No hashtags, no emojis, no labels.` });
+      const lines = String(r.text).split("\n").map((x: string) => x.replace(/^[-*#\d.\s"]+|["*]+$/g, "").trim()).filter(Boolean); if (lines[0]) setHead(lines[0]); if (lines[1]) setSub(lines[1]);
+    } catch (e) { setMsg((e as Error).message); }
+    setBusy(false);
+  }
+  async function save(andUse: boolean) {
+    const c = ref.current; if (!c) return; setBusy(true); setMsg("Saving…");
+    const blob: Blob | null = await new Promise((res) => c.toBlob(res, "image/jpeg", 0.9));
+    if (!blob) { setBusy(false); setMsg("Couldn't create the image."); return; }
+    const fd = new FormData(); fd.append("file", new File([blob], "graphic.jpg", { type: "image/jpeg" }));
+    const r = await fetch("/api/admin/upload", { method: "POST", body: fd }); const j = await r.json().catch(() => ({}));
+    if (!r.ok) { setBusy(false); setMsg(j.error || "Upload failed."); return; }
+    await run({ action: "saveMedia", url: j.url, title: head.slice(0, 150), width: W, height: GH }, "Saved to media library ✓");
+    setBusy(false); setMsg("");
+    if (andUse) openCompose({ title: head.slice(0, 180), body: [head, sub, cta].filter(Boolean).join("\n\n"), platforms: [], status: "draft", scheduled_at: null, media_url: j.url, campaign: "", notes: "Graphic from Creative Studio" });
+  }
+  function download() { const c = ref.current; if (!c) return; const a = document.createElement("a"); a.href = c.toDataURL("image/jpeg", 0.92); a.download = `NEAS-${SIZES[size][0].replace(/\W+/g, "-")}.jpg`; a.click(); }
+  const library = [...(s.media ?? []).map((m) => ({ url: m.url, title: m.title, id: m.id })), ...s.posts.filter((p) => p.media_url && !(s.media ?? []).some((m) => m.url === p.media_url)).map((p) => ({ url: p.media_url, title: p.title, id: 0 }))];
+  return <><H t="Creative Studio" sub="Make branded graphics in exact platform sizes. Runs in your browser, free." />
     <div className="mk-grid2 wide">
-      <div className="mk-card"><div className="mk-label">Media library ({media.length})</div>{media.length ? <div className="mk-media">{media.map((m, i) => <a key={i} href={m.url} target="_blank" rel="noopener" title={m.title}><img src={m.url} alt={m.title} loading="lazy" /></a>)}</div> : <Empty icon="✺" title="No media yet">Add an image link to a post in Compose and it appears here.</Empty>}</div>
-      <div className="mk-card"><div className="mk-label">Brand colours</div><div className="mk-swatches big">{["#071D29", "#101827", "#172235", "#CA9332", "#EBC07E", "#F97316"].map((c) => <span key={c} style={{ background: c }}><small>{c}</small></span>)}</div>
-        <div className="mk-label" style={{ marginTop: 14 }}>Platform dimensions</div><table className="mk-t"><tbody>{sizes.map(([a, b]) => <tr key={a}><td>{a}</td><td>{b}</td></tr>)}</tbody></table>
-        <p className="mk-mini">Template editor and AI image generation are the next build phase (needs an image-generation API key).</p></div>
+      <div className="mk-card">
+        <div className="mk-studio-stage"><canvas ref={ref} className="mk-canvas" style={{ aspectRatio: `${W} / ${GH}` }} aria-label="Graphic preview" /></div>
+        <div className="mk-row" style={{ marginTop: 12 }}>
+          {can("editor") && <><button type="button" className="mk-btn" disabled={busy} onClick={() => save(true)}>Save & use in new post</button><button type="button" className="mk-btn ghost" disabled={busy} onClick={() => save(false)}>Save to library</button></>}
+          <button type="button" className="mk-btn ghost" onClick={download}>⬇ Download JPG</button>
+          {msg && <span className="mk-mini">{msg}</span>}
+        </div>
+      </div>
+      <div className="mk-card">
+        <div className="mk-grid2"><label className="mk-f">Size<select value={size} onChange={(e) => setSize(Number(e.target.value))}>{SIZES.map(([n, w, h], i) => <option key={n} value={i}>{n} · {w}×{h}</option>)}</select></label>
+          <label className="mk-f">Layout<select value={tpl} onChange={(e) => setTpl(e.target.value)}>{TEMPLATES.map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select></label></div>
+        <label className="mk-f">Photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => loadFile(e.target.files?.[0])} /></label>
+        {img && <button type="button" className="mk-btn sm ghost" style={{ marginBottom: 10 }} onClick={() => setImg(null)}>Remove photo</button>}
+        <label className="mk-f">Headline<textarea rows={2} value={head} onChange={(e) => setHead(e.target.value)} /></label>
+        <label className="mk-f">Supporting line<input value={sub} onChange={(e) => setSub(e.target.value)} /></label>
+        <label className="mk-f">Button text<input value={cta} onChange={(e) => setCta(e.target.value)} placeholder="Leave empty to hide" /></label>
+        <label className="mk-chip on" style={{ marginBottom: 12 }}><input type="checkbox" checked={useLogo} onChange={(e) => setUseLogo(e.target.checked)} style={{ display: "inline" }} /> Show NEAS logo</label>
+        <div className="mk-label">✦ Headline from AI</div>
+        <div className="mk-row"><input className="mk-sel" style={{ flex: 1, minWidth: 0 }} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. wind turbine blade inspection in Ilocos" /><button type="button" className="mk-btn sm" disabled={busy || !s.aiReady} onClick={suggest}>Suggest</button></div>
+        {!s.aiReady && <p className="mk-mini">Add GEMINI_API_KEY to use AI headlines.</p>}
+        <p className="mk-mini" style={{ marginTop: 10 }}>AI-generated photos need a paid image API; this studio uses your own photos instead.</p>
+      </div>
+    </div>
+    <div className="mk-card"><div className="mk-label">Media library ({library.length})</div>
+      {library.length ? <div className="mk-media">{library.map((m, i) => <div key={i} className="mk-mitem"><img src={m.url} alt={m.title} loading="lazy" /><div className="mk-row" style={{ gap: 4 }}>
+        <button type="button" className="mk-btn sm ghost" onClick={() => openCompose({ title: m.title.slice(0, 180), body: "", platforms: [], status: "draft", scheduled_at: null, media_url: m.url, campaign: "", notes: "" })}>Use</button>
+        {m.url.startsWith("/api/img/") && <button type="button" className="mk-btn sm ghost" onClick={() => pickExisting(m.url)}>Edit</button>}
+        {m.id > 0 && can("manager") && <button type="button" className="mk-x" onClick={() => { if (confirm("Remove from library?")) run({ action: "deleteMedia", id: m.id }, "Removed"); }}>×</button>}</div></div>)}</div>
+        : <Empty icon="✺" title="No graphics yet">Make one above and click Save.</Empty>}
     </div></>;
 }
 
@@ -586,6 +716,8 @@ function Style() {
 .mk-brandhead{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}.mk-brandhead small{display:block;color:var(--tx2)}
 .mk-swatches{display:flex;gap:6px;margin-left:auto}.mk-swatches span{width:26px;height:26px;border-radius:6px;border:1px solid var(--ln)}
 .mk-swatches.big{margin:0;flex-wrap:wrap}.mk-swatches.big span{width:84px;height:60px;display:flex;align-items:flex-end;padding:4px}.mk-swatches.big small{font-size:10px;background:rgba(0,0,0,.5);padding:1px 4px;border-radius:4px}
+.mk-grid2>*,.mk-grid3>*,.mk-grid4>*{min-width:0}.mk-f select,.mk-f input,.mk-f textarea{width:100%;min-width:0;box-sizing:border-box}
+.mk-studio-stage{background:var(--bg2);border-radius:10px;padding:12px;display:grid;place-items:center}.mk-canvas{width:100%;max-width:100%;max-height:70vh;height:auto;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4)}.mk-mitem{display:grid;gap:6px}
 .mk-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}.mk-media img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
 .mk-x{all:unset;cursor:pointer;color:#fda4af;font-size:18px;padding:0 6px}
 .mk-feeditem{border-bottom:1px solid var(--ln);padding:10px 0}
