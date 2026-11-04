@@ -20,6 +20,7 @@ type State = {
   automation?: { orderAlert: boolean; orderConfirm: boolean; orderStatus: boolean; approval: boolean; publishFail: boolean; alertEmail: string };
   emailReady?: boolean;
   emailLog?: { to: string; subject: string; kind: string; ok: boolean; error: string; at: string }[];
+  waReady?: boolean;
   reach7?: { fetchedAt?: string; reached: number; views: number } | null;
   scheduler?: { url: string; hasCronSecret: boolean; last: { at?: string; published?: number; failed?: number } };
 };
@@ -304,10 +305,10 @@ function Calendar({ posts, can, run, openCompose }: { posts: Post[]; can: Can; r
   </>;
 }
 
-type Thread = { key: string; kind: "message" | "comment"; accountId: number; page: string; target: string; who: string; preview: string; at: string; unread: boolean; messages: { id: string; from: string; text: string; at: string; mine: boolean }[]; postText?: string; link?: string; status?: string; assignedTo?: number | null; note?: string | null };
+type Thread = { key: string; kind: "message" | "comment" | "whatsapp"; accountId: number; page: string; target: string; who: string; preview: string; at: string; unread: boolean; messages: { id: string; from: string; text: string; at: string; mine: boolean }[]; postText?: string; link?: string; status?: string; assignedTo?: number | null; note?: string | null };
 
 function Inbox({ s, go, can }: { s: State; go: (m: Mod) => void; can: Can }) {
-  const connected = (s.accounts ?? []).some((a) => a.platform === "facebook" && a.status === "ok");
+  const connected = !!s.waReady || (s.accounts ?? []).some((a) => a.platform === "facebook" && a.status === "ok");
   const [data, setData] = useState<{ threads: Thread[]; errors: string[] } | null>(null);
   const [loading, setLoading] = useState(false); const [sel, setSel] = useState(""); const [filter, setFilter] = useState<"open" | "mine" | "done" | "all">("open");
   const [reply, setReply] = useState(""); const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false); const [note, setNote] = useState("");
@@ -323,7 +324,7 @@ function Inbox({ s, go, can }: { s: State; go: (m: Mod) => void; can: Can }) {
   async function suggest() {
     if (!t) return; setBusy(true); setMsg("");
     const last = [...t.messages].reverse().find((m) => !m.mine)?.text ?? t.preview;
-    try { const r = await call({ action: "ai", task: "reply", topic: `Customer (${t.kind === "comment" ? "Facebook comment" : "Messenger"}): ${last}` }); setReply(String(r.text).trim()); } catch (e) { setMsg((e as Error).message); }
+    try { const r = await call({ action: "ai", task: "reply", topic: `Customer (${t.kind === "comment" ? "Facebook comment" : t.kind === "whatsapp" ? "WhatsApp" : "Messenger"}): ${last}` }); setReply(String(r.text).trim()); } catch (e) { setMsg((e as Error).message); }
     setBusy(false);
   }
   async function send() {
@@ -331,7 +332,7 @@ function Inbox({ s, go, can }: { s: State; go: (m: Mod) => void; can: Can }) {
     try { await call({ action: "inboxReply", accountId: t.accountId, kind: t.kind, target: t.target, text: reply }); setMsg("Sent ✓"); setReply(""); await meta({ status: "done" }); await load(); } catch (e) { setMsg((e as Error).message); }
     setBusy(false);
   }
-  if (!connected) return <><H t="Unified inbox" sub="Messenger chats and comments from your Facebook Page." />
+  if (!connected) return <><H t="Unified inbox" sub="Messenger chats, Facebook comments and WhatsApp messages." />
     <div className="mk-card"><Empty icon="✉" title="Connect your Facebook Page first">The inbox reads messages directly from Facebook. Nothing here is simulated.<br /><br /><button type="button" className="mk-btn" onClick={() => go("accounts")}>Go to Social Accounts →</button></Empty></div></>;
   return <><H t="Unified inbox" sub="Messenger chats and comments on your recent Page posts, live from Facebook.">
     {(["open", "mine", "done", "all"] as const).map((f) => <button key={f} type="button" className={"mk-btn sm" + (filter === f ? "" : " ghost")} onClick={() => setFilter(f)}>{{ open: "Open", mine: "Assigned to me", done: "Done", all: "All" }[f]}</button>)}
@@ -342,19 +343,19 @@ function Inbox({ s, go, can }: { s: State; go: (m: Mod) => void; can: Can }) {
       <div className="mk-card mk-ilist">{!data && loading && <p className="mk-mini">Loading conversations…</p>}
         {threads.map((x) => <button key={x.key} type="button" className={"mk-ithread" + (x.key === sel ? " sel" : "")} onClick={() => setSel(x.key)}>
           <div className="mk-row between"><b>{x.who}</b><small>{new Date(x.at).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</small></div>
-          <div className="mk-mini" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{x.kind === "comment" ? "💬 " : "✉ "}{x.preview}</div>
+          <div className="mk-mini" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{x.kind === "comment" ? "💬 " : x.kind === "whatsapp" ? "🟢 " : "✉ "}{x.preview}</div>
           <div className="mk-row" style={{ gap: 4 }}>{x.unread && x.status !== "done" && <span className="mk-pill st-pending">Needs reply</span>}{x.status === "done" && <span className="mk-pill st-published">Done</span>}{x.assignedTo && <span className="mk-pill">{s.team.find((m) => m.id === x.assignedTo)?.name ?? "Assigned"}</span>}</div>
         </button>)}
         {data && !threads.length && <Empty icon="✓" title="Nothing here">No conversations in this view.</Empty>}
       </div>
       <div className="mk-card">{!t ? <Empty icon="✉" title="Pick a conversation">Messages and comments appear on the left.</Empty> : <>
-        <div className="mk-row between"><div><b>{t.who}</b><div className="mk-mini">{t.kind === "comment" ? "Comment on your post" : "Messenger"} · {t.page}{t.link && <> · <a className="mk-link" href={t.link} target="_blank" rel="noopener">Open on Facebook ↗</a></>}</div></div>
+        <div className="mk-row between"><div><b>{t.who}</b><div className="mk-mini">{t.kind === "comment" ? "Comment on your post" : t.kind === "whatsapp" ? "WhatsApp +" + t.target : "Messenger"} · {t.page}{t.link && <> · <a className="mk-link" href={t.link} target="_blank" rel="noopener">{t.kind === "whatsapp" ? "Open in WhatsApp ↗" : "Open on Facebook ↗"}</a></>}</div></div>
           <div className="mk-row">{can("editor") && <select className="mk-sel" value={t.assignedTo ?? ""} onChange={(e) => meta({ assignedTo: e.target.value ? Number(e.target.value) : null })}><option value="">Unassigned</option>{s.team.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>}
             {can("editor") && <button type="button" className="mk-btn sm ghost" onClick={() => meta({ status: t.status === "done" ? "open" : "done" })}>{t.status === "done" ? "Reopen" : "Mark done"}</button>}</div></div>
         {t.postText && <div className="mk-mini" style={{ margin: "8px 0" }}>On post: “{t.postText}”</div>}
         <div className="mk-chat">{t.messages.map((m) => <div key={m.id} className={"mk-bubble" + (m.mine ? " mine" : "")}><div>{m.text}</div><small>{m.mine ? "NEAS" : m.from} · {new Date(m.at).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}</small></div>)}</div>
         {can("editor") && <>
-          <label className="mk-f">Reply{t.kind === "message" && <span className="mk-mini">Facebook allows Messenger replies within 24 hours of the customer's last message.</span>}<textarea rows={4} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write a reply…" /></label>
+          <label className="mk-f">Reply{t.kind !== "comment" && <span className="mk-mini">{t.kind === "whatsapp" ? "WhatsApp" : "Facebook"} allows free replies within 24 hours of the customer's last message.</span>}<textarea rows={4} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write a reply…" /></label>
           <div className="mk-row"><button type="button" className="mk-btn" disabled={busy || !reply.trim()} onClick={send}>Send reply</button><button type="button" className="mk-btn ghost" disabled={busy || !s.aiReady} onClick={suggest}>✦ Suggest reply</button>{msg && <span className="mk-mini">{msg}</span>}</div>
           <label className="mk-f" style={{ marginTop: 12 }}>Internal note (staff only)<textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} onBlur={() => note !== (t.note ?? "") && meta({ note })} placeholder="e.g. Sent quote for 10 harnesses" /></label>
         </>}

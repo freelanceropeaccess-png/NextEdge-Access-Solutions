@@ -1,12 +1,13 @@
 import { sql } from "./db";
 import { decrypt } from "./social";
+import { waReply, waThreads } from "./whatsapp";
 
 /** Facebook Page inbox: Messenger conversations and comments on recent Page posts, read live from the Graph API.
  *  Needs the Page connected with pages_messaging (messages) and pages_read_user_content + pages_manage_engagement (comments). */
 const GRAPH = () => `https://graph.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}`;
 
 export type InboxMsg = { id: string; from: string; fromId: string; text: string; at: string; mine: boolean };
-export type InboxThread = { key: string; kind: "message" | "comment"; accountId: number; page: string; target: string; who: string; preview: string; at: string; unread: boolean; messages: InboxMsg[]; postText?: string; link?: string };
+export type InboxThread = { key: string; kind: "message" | "comment" | "whatsapp"; accountId: number; page: string; target: string; who: string; preview: string; at: string; unread: boolean; messages: InboxMsg[]; postText?: string; link?: string };
 
 async function g(path: string, token: string) {
   const r = await fetch(`${GRAPH()}/${path}${path.includes("?") ? "&" : "?"}access_token=${encodeURIComponent(token)}`);
@@ -39,6 +40,7 @@ export async function loadInbox(): Promise<{ threads: InboxThread[]; errors: str
       }
     } catch (e) { errors.push(`${a.name} comments: ${(e as Error).message}`); }
   }
+  try { threads.push(...(await waThreads())); } catch (e) { errors.push("WhatsApp: " + (e as Error).message); }
   const meta = await sql`select thread_key, status, assigned_to, note from mk_inbox_meta`.catch(() => []);
   const m = new Map(meta.map((r) => [r.thread_key, r]));
   threads.sort((x, y) => +new Date(y.at) - +new Date(x.at));
@@ -47,6 +49,7 @@ export async function loadInbox(): Promise<{ threads: InboxThread[]; errors: str
 
 /** Sends a reply. Messenger replies only work within 24 hours of the customer's last message (Meta's rule). */
 export async function sendReply(accountId: number, kind: string, target: string, text: string): Promise<string> {
+  if (kind === "whatsapp") return waReply(target, text);
   const a = (await sql`select external_id, token_enc from mk_social_accounts where id = ${accountId} and platform = 'facebook'`)[0];
   if (!a) throw new Error("That Page is no longer connected.");
   const token = decrypt(a.token_enc);

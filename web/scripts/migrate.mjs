@@ -94,5 +94,9 @@ await sql`create table if not exists mk_inbox_meta (
   note text, updated_by int references users(id) on delete set null, updated_at timestamptz not null default now())`;
 await sql`create table if not exists mk_email_log (
   id serial primary key, recipient text not null, subject text not null, kind text not null, ok boolean not null, error text, created_at timestamptz not null default now())`;
+await sql`create table if not exists mk_wa_messages (
+  id serial primary key, wa_id text not null, name text not null default '', msg_id text unique, text text not null default '',
+  mine boolean not null default false, status text, created_at timestamptz not null default now())`;
+await sql`create index if not exists mk_wa_messages_wa on mk_wa_messages (wa_id, created_at)`;
 console.log("[migrate] Database ready.");
 await sql.end();
