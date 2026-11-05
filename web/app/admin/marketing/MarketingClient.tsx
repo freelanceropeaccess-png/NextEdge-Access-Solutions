@@ -371,7 +371,7 @@ function Analytics({ s }: { s: State }) {
   const perMonth = months.map((m) => s.posts.filter((p) => p.status === "published" && new Date(p.updated_at).getMonth() === m.getMonth() && new Date(p.updated_at).getFullYear() === m.getFullYear()).length);
   const max = Math.max(1, ...perMonth);
   const plat = Object.keys(PLAT).map((k) => [k, s.posts.filter((p) => p.platforms.includes(k)).length] as const);
-  return <><H t="Analytics" sub="Real numbers only. Social metrics appear once accounts are connected." />
+  return <><H t="Analytics" sub="Real numbers only, from your website and connected accounts." />
     <div className="mk-grid4">
       <div className="mk-card mk-kpi"><small>Total posts</small><b>{s.posts.length}</b><span className="mk-src">Source: NEAS database</span></div>
       <div className="mk-card mk-kpi"><small>Bio link clicks</small><b>{s.links.reduce((a, l) => a + l.clicks, 0)}</b><span className="mk-src">Source: NEAS link-in-bio</span></div>

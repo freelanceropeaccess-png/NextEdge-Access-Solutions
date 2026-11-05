@@ -33,7 +33,7 @@ export default async function Account() {
     <div className="card" style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}>
       <h3 style={{ marginTop: 0, color: "#15803d" }}>Payment details · Bank transfer</h3>
       <p style={{ margin: 0, lineHeight: 1.8 }}>Account Name: <b>{BANK.accountName}</b><br />Account Number: <b>{BANK.accountNumber}</b><br />SWIFT Code: {BANK.swift}<br />Bank: {BANK.bank}</p>
-      <p className="muted" style={{ fontSize: 13 }}>Use your order reference on the deposit, then email the slip to sales@nextedge-access-solutions.com.</p>
+      <p className="muted" style={{ fontSize: 13 }}>For orders, use your order reference on the deposit and email the slip to sales@nextedge-access-solutions.com. For the Marketing Command Center (₱100/month), enter the deposit reference in the Marketing Command Center box above.</p>
     </div>
   </div>;
 }
