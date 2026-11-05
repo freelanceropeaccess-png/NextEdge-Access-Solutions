@@ -448,7 +448,7 @@ function Accounts({ s, can }: { s: State; can: Can }) {
         {mine.map((a) => <div key={a.id} className="mk-li" style={{ cursor: "default" }}><div style={{ flex: 1 }}><b>{a.name}</b><small>{a.status === "ok" ? "Healthy" + (a.expires_at ? " · token renews by reconnecting before " + new Date(a.expires_at).toLocaleDateString("en-PH") : "") : "⚠ " + a.error}</small></div>
           {can("manager") && <button type="button" className="mk-btn sm ghost danger" disabled={busy === a.id} onClick={async () => { if (!confirm(`Disconnect ${a.name}?`)) return; setBusy(a.id); await call({ action: "disconnect", id: a.id }).catch(() => {}); location.reload(); }}>Disconnect</button>}</div>)}
         <p className="mk-mini">{c.note}{!c.ready && c.needs ? <><br />Needs: <code>{c.needs}</code></> : null}</p>
-        {c.connect && (c.ready && can("manager") ? <a className="mk-btn sm" href={`/api/admin/social/connect/${c.connect}`}>{mine.length ? "Reconnect" : "Connect"}</a> : <button type="button" className="mk-btn sm ghost" disabled>Connect</button>)}
+        {c.connect && (c.ready && can("manager") ? <><a className="mk-btn sm" href={`/api/admin/social/connect/${c.connect}`}>{mine.length ? "Reconnect" : "Connect"}</a>{c.connect === "linkedin" && c.ready && can("manager") && <a className="mk-btn sm ghost" style={{ marginLeft: 6 }} href="/api/admin/social/connect/linkedin?pages=1" title="Needs LinkedIn to approve the Community Management API for your app">+ Connect LinkedIn Page</a>}</> : <button type="button" className="mk-btn sm ghost" disabled>Connect</button>)}
       </div>; })}</div>
     <div className="mk-card"><div className="mk-label">App settings to copy into each developer app</div>
       <table className="mk-t"><tbody>

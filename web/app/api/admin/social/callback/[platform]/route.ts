@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ platform
   let saved: { state?: string; p?: string } = {};
   try { saved = JSON.parse(jar.get("mk_oauth")?.value ?? "{}"); } catch {}
   jar.delete("mk_oauth");
-  if (url.searchParams.get("error")) return back("Connection was cancelled.");
+  if (url.searchParams.get("error")) return back(/scope/i.test(url.searchParams.get("error") ?? "") ? "LinkedIn hasn't approved Company Page access (Community Management API) for your app yet. Your profile connection still works." : "Connection was cancelled.");
   const code = url.searchParams.get("code");
   if (!(SOCIAL_PLATFORMS as readonly string[]).includes(platform) || !code || !saved.state || saved.state !== url.searchParams.get("state") || saved.p !== platform)
     return back("The connection expired. Please try again.");

@@ -16,5 +16,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ platform
   if ((p === "facebook" && !metaReady()) || (p === "linkedin" && !linkedinReady())) return back("Add the app keys in Vercel first.");
   const state = randomBytes(24).toString("base64url");
   (await cookies()).set("mk_oauth", JSON.stringify({ state, p }), { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 600 });
-  return NextResponse.redirect(authorizeUrl(p, originOf(req), state));
+  return NextResponse.redirect(authorizeUrl(p, originOf(req), state, p === "linkedin" && new URL(req.url).searchParams.get("pages") === "1"));
 }

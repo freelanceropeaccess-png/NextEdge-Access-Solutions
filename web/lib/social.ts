@@ -34,12 +34,12 @@ export function metaScopes() {
   return (process.env.META_INSTAGRAM === "1" ? [...pages, "instagram_basic", "instagram_content_publish"] : pages).join(",");
 }
 /** LINKEDIN_PAGES=1 also asks for Company Page access (needs the Community Management API product on the LinkedIn app). */
-const liScopes = () => "openid profile w_member_social" + (process.env.LINKEDIN_PAGES === "1" ? " rw_organization_admin w_organization_social" : "");
+const liScopes = (pages = false) => "openid profile w_member_social" + (pages || process.env.LINKEDIN_PAGES === "1" ? " rw_organization_admin w_organization_social" : "");
 export const metaReady = () => !!(process.env.META_APP_ID && env("META_APP_SECRET"));
 export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && env("LINKEDIN_CLIENT_SECRET"));
 export const redirectUri = (origin: string, p: ConnectPlatform) => `${origin}/api/admin/social/callback/${p}`;
 
-export function authorizeUrl(p: ConnectPlatform, origin: string, state: string) {
+export function authorizeUrl(p: ConnectPlatform, origin: string, state: string, pages = false) {
   if (p === "facebook") {
     const q = new URLSearchParams({ client_id: env("META_APP_ID"), redirect_uri: redirectUri(origin, p), state, response_type: "code" });
     // Facebook Login for Business apps use a saved configuration; classic Facebook Login uses a scope list.
@@ -47,7 +47,7 @@ export function authorizeUrl(p: ConnectPlatform, origin: string, state: string) 
     else q.set("scope", metaScopes());
     return `https://www.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}/dialog/oauth?${q}`;
   }
-  const q = new URLSearchParams({ response_type: "code", client_id: env("LINKEDIN_CLIENT_ID"), redirect_uri: redirectUri(origin, p), state, scope: liScopes() });
+  const q = new URLSearchParams({ response_type: "code", client_id: env("LINKEDIN_CLIENT_ID"), redirect_uri: redirectUri(origin, p), state, scope: liScopes(pages) });
   return `https://www.linkedin.com/oauth/v2/authorization?${q}`;
 }
 
@@ -85,7 +85,7 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
   const me = await j(await fetch("https://api.linkedin.com/v2/userinfo", { headers: { authorization: `Bearer ${tok.access_token}` } }));
   await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId);
   let orgs = 0;
-  if (process.env.LINKEDIN_PAGES === "1") {
+  if (process.env.LINKEDIN_PAGES === "1" || /w_organization_social/.test(String(tok.scope ?? ""))) {
     const h = { authorization: `Bearer ${tok.access_token}`, "LinkedIn-Version": LI_VERSION(), "X-Restli-Protocol-Version": "2.0.0" };
     const exp = tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null;
     const acl = await j(await fetch("https://api.linkedin.com/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED", { headers: h }));
