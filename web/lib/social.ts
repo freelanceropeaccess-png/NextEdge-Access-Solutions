@@ -37,6 +37,10 @@ export function metaScopes() {
 /** LINKEDIN_PAGES=1 also asks for Company Page access (needs the Community Management API product on the LinkedIn app). */
 const liScopes = (pages = false) => "openid profile w_member_social" + (pages || process.env.LINKEDIN_PAGES === "1" ? " rw_organization_admin w_organization_social" : "");
 export const metaReady = () => !!(process.env.META_APP_ID && env("META_APP_SECRET"));
+/** LinkedIn requires the Community Management API to live in its own app; when LINKEDIN_PAGES_CLIENT_ID is set, Page connections use that app. */
+const pagesApp = (pages: boolean) => pages && !!env("LINKEDIN_PAGES_CLIENT_ID");
+const liId = (pages: boolean) => env(pagesApp(pages) ? "LINKEDIN_PAGES_CLIENT_ID" : "LINKEDIN_CLIENT_ID");
+const liSecret = (pages: boolean) => env(pagesApp(pages) ? "LINKEDIN_PAGES_CLIENT_SECRET" : "LINKEDIN_CLIENT_SECRET");
 export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && env("LINKEDIN_CLIENT_SECRET"));
 export const redirectUri = (origin: string, p: ConnectPlatform) => `${origin}/api/admin/social/callback/${p}`;
 
@@ -50,7 +54,7 @@ export function authorizeUrl(p: ConnectPlatform, origin: string, state: string, 
     else q.set("scope", metaScopes());
     return `https://www.facebook.com/${process.env.META_GRAPH_VERSION || "v25.0"}/dialog/oauth?${q}`;
   }
-  const q = new URLSearchParams({ response_type: "code", client_id: env("LINKEDIN_CLIENT_ID"), redirect_uri: redirectUri(origin, p), state, scope: liScopes(pages) });
+  const q = new URLSearchParams({ response_type: "code", client_id: liId(pages), redirect_uri: redirectUri(origin, p), state, scope: pagesApp(pages) ? "rw_organization_admin w_organization_social" : liScopes(pages) });
   return `https://www.linkedin.com/oauth/v2/authorization?${q}`;
 }
 
@@ -68,7 +72,7 @@ async function saveAccount(platform: string, externalId: string, name: string, t
 }
 
 /** Exchanges the OAuth code and stores every account it grants. Returns a short summary. */
-export async function completeConnect(p: ConnectPlatform, code: string, origin: string, userId: number, ws: number | null = null): Promise<string> {
+export async function completeConnect(p: ConnectPlatform, code: string, origin: string, userId: number, ws: number | null = null, pages = false): Promise<string> {
   if (p === "google") return connectGoogle(code, origin, userId, ws);
   if (p === "tiktok") return connectTikTok(code, origin, userId, ws);
   if (p === "facebook") {
@@ -86,9 +90,9 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
     return `${fb} Facebook Page(s)${ig ? ` and ${ig} Instagram account(s)` : ""} connected`;
   }
   const tok = await j(await fetch("https://www.linkedin.com/oauth/v2/accessToken", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(origin, p), client_id: env("LINKEDIN_CLIENT_ID"), client_secret: env("LINKEDIN_CLIENT_SECRET") }) }));
-  const me = await j(await fetch("https://api.linkedin.com/v2/userinfo", { headers: { authorization: `Bearer ${tok.access_token}` } }));
-  await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId, ws);
+    body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(origin, p), client_id: liId(pages), client_secret: liSecret(pages) }) }));
+  const me = pagesApp(pages) ? { sub: "", name: "" } : await j(await fetch("https://api.linkedin.com/v2/userinfo", { headers: { authorization: `Bearer ${tok.access_token}` } }));
+  if (me.sub) await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId, ws);
   let orgs = 0;
   if (process.env.LINKEDIN_PAGES === "1" || /w_organization_social/.test(String(tok.scope ?? ""))) {
     const h = { authorization: `Bearer ${tok.access_token}`, "LinkedIn-Version": LI_VERSION(), "X-Restli-Protocol-Version": "2.0.0" };
@@ -100,7 +104,8 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
       await saveAccount("linkedin", "org:" + id, (org.localizedName || "LinkedIn Page " + id) + " (Page)", tok.access_token, exp, userId, ws); orgs++;
     }
   }
-  return `LinkedIn profile ${me.name ?? ""}${orgs ? ` and ${orgs} LinkedIn Page(s)` : ""} connected`.replace(/\s+/g, " ");
+  if (!me.sub && !orgs) throw new Error("No LinkedIn Pages found where you are an admin.");
+  return `${me.sub ? `LinkedIn profile ${me.name ?? ""}` : ""}${me.sub && orgs ? " and " : ""}${orgs ? `${orgs} LinkedIn Page(s)` : ""} connected`.replace(/\s+/g, " ");
 }
 
 const absolute = (u: string, origin: string) => (u.startsWith("/") ? origin + u : u);
