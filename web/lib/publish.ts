@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { sql } from "./db";
 import { publishTo } from "./social";
-import { logActivity, inWs, TENANT_DAILY_LIMIT } from "./marketing";
+import { logActivity, inWs, memberLimit } from "./marketing";
 import { notifyApproval } from "./notify";
 
 export type PublishResult = { platform: string; name: string; ok: boolean; error?: string };
@@ -19,7 +19,7 @@ export async function publishPost(id: number, userId: number | null, origin: str
   if (post.ws != null) {
     const n = (await sql`select count(distinct r.post_id)::int n from mk_post_results r join mk_posts p on p.id = r.post_id
       where p.ws = ${post.ws} and r.ok and r.post_id <> ${id} and r.created_at >= (date_trunc('day', now() at time zone 'Asia/Manila') at time zone 'Asia/Manila')`)[0].n;
-    if (n >= TENANT_DAILY_LIMIT) return { error: `Daily limit reached: ${TENANT_DAILY_LIMIT} posts per day. Try again tomorrow (Philippine time).`, retry: true };
+    if (n >= memberLimit()) return { error: `Daily limit reached: ${memberLimit()} posts per day. Try again tomorrow (Philippine time).`, retry: true };
   }
   const accounts = await sql`select * from mk_social_accounts where platform in ${sql(wanted)} and status = 'ok' and ${inWs(post.ws)}`;
   const done = new Set((await sql`select account_id from mk_post_results where post_id = ${id} and ok`).map((r) => r.account_id));

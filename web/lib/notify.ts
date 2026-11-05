@@ -1,4 +1,5 @@
 import { sql } from "./db";
+import { loadConfig } from "./config";
 import { getSetting, DEFAULT_BUSINESS, type Business } from "./settings";
 
 /** Email automations (Resend). Every send is logged in mk_email_log; failures never break the action that triggered them. */
@@ -24,6 +25,7 @@ function layout(title: string, body: string) {
 }
 
 export async function sendMail(to: string, subject: string, html: string, kind: string): Promise<boolean> {
+  await loadConfig().catch(() => {});
   const key = process.env.RESEND_API_KEY;
   let ok = false, error: string | null = null;
   if (!key) error = "RESEND_API_KEY not set";

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { sql } from "./db";
+import { loadConfig } from "./config";
 
 const COOKIE = "neas_session";
 import { createHash } from "node:crypto";
@@ -26,6 +27,7 @@ export async function clearSession() {
 }
 
 export async function getUser(): Promise<SessionUser | null> {
+  await loadConfig().catch(() => {});
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
   try {

@@ -28,6 +28,7 @@ const DEFAULT_FROM = "NEAS <no-reply@nextedge-access-solutions.com>";
 
 /** Sends email through Resend when RESEND_API_KEY and MAIL_FROM are set. Returns false if email isn't configured or failed. */
 export async function sendResetEmail(to: string, link: string): Promise<boolean> {
+  await (await import("./config")).loadConfig().catch(() => {});
   const key = process.env.RESEND_API_KEY, from = process.env.MAIL_FROM || DEFAULT_FROM;
   if (!key) return false;
   try {

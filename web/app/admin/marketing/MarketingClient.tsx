@@ -120,7 +120,7 @@ export default function MarketingClient() {
         {mod === "studio" && <Studio s={s} can={can} run={run} openCompose={openCompose} />}
         {mod === "bio" && <Bio s={s} can={can} run={run} />}
         {mod === "team" && <Team s={s} can={can} run={run} />}
-        {mod === "settings" && <Settings s={s} />}
+        {mod === "settings" && <Settings s={s} />}{mod === "settings" && !s.tenant && can("admin") && <ApiKeys />}
       </main>
     </div>
     {toast && <div className="mk-toast" role="status">{toast}</div>}
@@ -745,6 +745,32 @@ function Team({ s, can, run }: { s: State; can: Can; run: Run }) {
           <td>{can("admin") && <div className="mk-row">{(m.status !== "approved" || m.ref) && <button type="button" className="mk-btn sm" onClick={() => run({ action: "memberAccess", userId: m.id, status: "approved" }, "Approved +1 month — member emailed")}>{m.status === "approved" ? "Add 1 month" : "Approve 1 month"}</button>}{m.status === "requested" && <button type="button" className="mk-btn sm ghost" onClick={() => run({ action: "memberAccess", userId: m.id, status: "rejected" }, "Rejected")}>Reject</button>}{m.status === "approved" && <button type="button" className="mk-btn sm ghost" onClick={() => run({ action: "memberAccess", userId: m.id, status: "revoked" }, "Access removed")}>Remove access</button>}</div>}</td></tr>)}
       </tbody></table></div>}
     </div></>;
+}
+
+type CfgKey = { key: string; label: string; group: string; secret: boolean; help?: string; source: string; preview: string };
+function ApiKeys() {
+  const [keys, setKeys] = useState<CfgKey[] | null>(null), [edit, setEdit] = useState<Record<string, string>>({}), [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
+  useEffect(() => { call({ action: "config" }).then((r) => setKeys(r.keys)).catch((e) => setMsg((e as Error).message)); }, []);
+  async function save(changes: Record<string, string | null>) {
+    setBusy(true); setMsg("");
+    try { const r = await call({ action: "saveConfig", changes }); setKeys(r.keys); setEdit({}); setMsg("Saved ✓ — active right away, no redeploy needed. Reload the page to refresh connection buttons."); } catch (e) { setMsg((e as Error).message); }
+    setBusy(false);
+  }
+  const groups = [...new Set((keys ?? []).map((k) => k.group))];
+  const dirty = Object.keys(edit).filter((k) => edit[k].trim());
+  return <div className="mk-card" style={{ marginTop: 16 }}>
+    <div className="mk-row between"><div className="mk-label" style={{ margin: 0 }}>API keys &amp; integrations · admin control</div>
+      <button type="button" className="mk-btn sm" disabled={busy || !dirty.length} onClick={() => save(Object.fromEntries(dirty.map((k) => [k, edit[k]])))}>{busy ? "Saving…" : `Save ${dirty.length || ""} change${dirty.length === 1 ? "" : "s"}`}</button></div>
+    <p className="mk-mini">Paste keys here instead of Vercel. They're encrypted in your database, take effect immediately, and are never shown again (only the last 4 characters). A key saved here overrides the Vercel one; Clear goes back to Vercel's value.</p>
+    {msg && <p className="mk-note">{msg}</p>}
+    {!keys && !msg && <p className="mk-mini">Loading…</p>}
+    {groups.map((g) => <div key={g} style={{ marginTop: 12 }}><b>{g}</b>
+      <table className="mk-t"><tbody>{(keys ?? []).filter((k) => k.group === g).map((k) => <tr key={k.key}>
+        <td style={{ width: "34%" }}>{k.label}<div className="mk-mini"><code>{k.key}</code>{k.help ? " · " + k.help : ""}</div></td>
+        <td style={{ width: "22%" }}>{k.source ? <span className={"mk-pill " + (k.source === "admin" ? "st-published" : "st-approved")}>{k.source === "admin" ? "Set here" : "From Vercel"}</span> : <span className="mk-pill st-draft">Not set</span>} <code className="mk-mini">{k.preview}</code></td>
+        <td><div className="mk-row"><input className="mk-sel" type={k.secret ? "password" : "text"} autoComplete="off" placeholder={k.source ? "Replace…" : "Paste value"} value={edit[k.key] ?? ""} onChange={(e) => setEdit({ ...edit, [k.key]: e.target.value })} style={{ flex: 1, minWidth: 120 }} />
+          {k.source === "admin" && <button type="button" className="mk-btn sm ghost" disabled={busy} onClick={() => { if (confirm(`Clear ${k.key}?`)) save({ [k.key]: null }); }}>Clear</button>}</div></td></tr>)}</tbody></table></div>)}
+  </div>;
 }
 
 function Settings({ s }: { s: State }) {

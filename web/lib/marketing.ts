@@ -9,7 +9,7 @@ export const PLATFORMS = ["facebook", "instagram", "linkedin", "youtube", "tikto
 
 export type MkUser = { id: number; name: string; email: string; role: MkRole; ws: number | null; tenant: boolean };
 /** Self-serve members may publish this many posts per day (Philippine time). NEAS staff are unlimited. */
-export const TENANT_DAILY_LIMIT = Number(process.env.MK_MEMBER_DAILY_LIMIT) || 10;
+export const memberLimit = () => Number(process.env.MK_MEMBER_DAILY_LIMIT) || 10;
 /** SQL condition for "rows in this workspace". */
 export const inWs = (ws: number | null) => (ws == null ? sql`ws is null` : sql`ws = ${ws}`);
 export const brandKey = (ws: number | null) => (ws == null ? "mk_brand" : `mk_brand_ws${ws}`);

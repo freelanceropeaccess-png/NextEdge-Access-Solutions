@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { sql } from "@/lib/db";
+import { loadConfig } from "@/lib/config";
 import { setSetting } from "@/lib/settings";
 import { ok, bad } from "@/lib/http";
 import { originOf } from "@/lib/reset";
@@ -13,6 +14,7 @@ const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(
 /** Publishes every "scheduled" post whose time has come. Called by Vercel Cron (daily) or a free pinger (every 5–15 min).
  *  Auth: "Authorization: Bearer <token>" or "?token=<token>". */
 async function run(req: Request) {
+  await loadConfig().catch(() => {});
   const url = new URL(req.url);
   const given = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "") || url.searchParams.get("token") || "";
   if (!given || !same(given, cronToken())) return bad("Not authorized.", 401);

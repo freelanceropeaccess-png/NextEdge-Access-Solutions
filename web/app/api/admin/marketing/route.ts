@@ -3,6 +3,7 @@ import { originOf } from "@/lib/reset";
 import { metaReady, linkedinReady } from "@/lib/social";
 import { publishPost, cronToken } from "@/lib/publish";
 import { googleReady, tiktokReady } from "@/lib/social-video";
+import { configStatus, saveConfig } from "@/lib/config";
 import { loadInbox, sendReply } from "@/lib/inbox";
 import { loadInsights } from "@/lib/insights";
 import { autoSettings, sendMail, type AutoSettings } from "@/lib/notify";
@@ -11,7 +12,7 @@ import { bad, ok } from "@/lib/http";
 import { getSetting, setSetting } from "@/lib/settings";
 import {
   getMkUser, can, TRANSITIONS, STATUSES, PLATFORMS, ROLES, logActivity, generate, platformStatus,
-  DEFAULT_BRAND, cleanUrl, inWs, brandKey, TENANT_DAILY_LIMIT, type Brand, type MkStatus, type MkRole, type MkUser,
+  DEFAULT_BRAND, cleanUrl, inWs, brandKey, memberLimit, type Brand, type MkStatus, type MkRole, type MkUser,
 } from "@/lib/marketing";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +56,7 @@ async function loadState(u: MkUser) {
     media: (await sql`select id, url, title, width, height, created_at from mk_media where ${inWs(u.ws)} order by id desc limit 200`.catch(() => [])).map((m) => ({ id: m.id, url: m.url, title: m.title, width: m.width, height: m.height, at: new Date(m.created_at).toISOString() })),
     scheduler: { url: u.role === "admin" && !u.tenant ? `${process.env.SITE_URL?.replace(/\/$/, "") || "https://www.nextedge-access-solutions.com"}/api/cron/publish?token=${cronToken()}` : "", hasCronSecret: !!process.env.CRON_SECRET, last: await getSetting<{ at?: string; published?: number; failed?: number }>("mk_cron_last", {}) },
     tenant: u.tenant,
-    dailyLimit: u.tenant ? TENANT_DAILY_LIMIT : null,
+    dailyLimit: u.tenant ? memberLimit() : null,
     publishedToday: u.tenant ? (await sql`select count(distinct r.post_id)::int n from mk_post_results r join mk_posts p on p.id = r.post_id where p.ws = ${u.ws} and r.ok and r.created_at >= (date_trunc('day', now() at time zone 'Asia/Manila') at time zone 'Asia/Manila')`)[0].n : null,
     members: u.tenant ? [] : (await sql`select id, name, email, mk_access, mk_access_ref, mk_access_at, mk_access_until from users where mk_access is not null and role <> 'admin' order by mk_access_at desc nulls last limit 200`).map((m) => ({ id: m.id, name: m.name, email: m.email, status: m.mk_access, ref: m.mk_access_ref ?? "", at: m.mk_access_at ? new Date(m.mk_access_at).toISOString() : null, until: m.mk_access_until ? new Date(m.mk_access_until).toISOString() : null })),
     aiReady: !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY),
@@ -283,6 +284,17 @@ export async function POST(req: Request) {
       await log(`member access ${st}`, `${m.email}${m.old_ref ? " · ref " + m.old_ref : ""}${m.mk_access_until ? " · until " + new Date(m.mk_access_until).toISOString().slice(0, 10) : ""}`);
       if (st === "approved") await sendMail(m.email, "Your NEAS Marketing Command Center is ready", `<p>Hi ${String(m.name).replace(/[<>&]/g, "")},</p><p>Your payment is confirmed and your Marketing Command Center workspace is switched on until ${new Date(m.mk_access_until).toLocaleDateString("en-PH", { dateStyle: "long" })}. Renew with ₱100 each month from My Account.</p><p><a href="${originOf(req)}/admin/marketing">Open it here</a> (log in with your NEAS account).</p>`, "member").catch(() => false);
       return ok();
+    }
+    case "config": {
+      if (u.tenant || !need("admin")) return deny();
+      return ok({ keys: await configStatus() });
+    }
+    case "saveConfig": {
+      if (u.tenant || !need("admin")) return deny();
+      const ch = (b.changes && typeof b.changes === "object") ? b.changes as Record<string, string | null> : {};
+      await saveConfig(ch);
+      await log("updated API keys", Object.keys(ch).join(", ").slice(0, 400));
+      return ok({ keys: await configStatus() });
     }
     case "setRole": {
       if (!need("admin")) return deny();
