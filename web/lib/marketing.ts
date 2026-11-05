@@ -77,7 +77,7 @@ export const AI_TASKS: Record<string, string> = {
 
 export async function generate(task: string, topic: string, extra: { tone?: string; brand: Brand; tenant?: boolean }): Promise<{ text: string } | { error: string }> {
   const key = process.env.ANTHROPIC_API_KEY, gkey = process.env.GEMINI_API_KEY;
-  if (!key && !gkey) return { error: "AI is not switched on yet. Add a free GEMINI_API_KEY (or an ANTHROPIC_API_KEY) in Vercel → Settings → Environment Variables, then redeploy." };
+  if (!key && !gkey) return { error: "AI is not switched on yet. Paste a free GEMINI_API_KEY in Marketing Command Center → Settings & Logs → API keys, then try again." };
   const what = AI_TASKS[task];
   if (!what) return { error: "Unknown content type." };
   const b = extra.brand;
