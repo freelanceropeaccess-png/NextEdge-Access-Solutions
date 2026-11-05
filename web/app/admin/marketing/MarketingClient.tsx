@@ -768,7 +768,7 @@ function ApiKeys() {
       <table className="mk-t"><tbody>{(keys ?? []).filter((k) => k.group === g).map((k) => <tr key={k.key}>
         <td style={{ width: "34%" }}>{k.label}<div className="mk-mini"><code>{k.key}</code>{k.help ? " · " + k.help : ""}</div></td>
         <td style={{ width: "22%" }}>{k.source ? <span className={"mk-pill " + (k.source === "admin" ? "st-published" : "st-approved")}>{k.source === "admin" ? "Set here" : "From Vercel"}</span> : <span className="mk-pill st-draft">Not set</span>} <code className="mk-mini">{k.preview}</code></td>
-        <td><div className="mk-row"><input className="mk-sel" type={k.secret ? "password" : "text"} autoComplete="off" placeholder={k.source ? "Replace…" : "Paste value"} value={edit[k.key] ?? ""} onChange={(e) => setEdit({ ...edit, [k.key]: e.target.value })} style={{ flex: 1, minWidth: 120 }} />
+        <td><div className="mk-row"><input className="mk-sel" type={k.secret ? "password" : "text"} name={"cfg-" + k.key} autoComplete={k.secret ? "new-password" : "off"} data-lpignore="true" data-1p-ignore="true" placeholder={k.source ? "Replace…" : "Paste value"} value={edit[k.key] ?? ""} onChange={(e) => setEdit({ ...edit, [k.key]: e.target.value })} style={{ flex: 1, minWidth: 120 }} />
           {k.source === "admin" && <button type="button" className="mk-btn sm ghost" disabled={busy} onClick={() => { if (confirm(`Clear ${k.key}?`)) save({ [k.key]: null }); }}>Clear</button>}</div></td></tr>)}</tbody></table></div>)}
   </div>;
 }
