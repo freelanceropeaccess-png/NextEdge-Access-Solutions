@@ -5,7 +5,7 @@ import { logActivity, inWs, TENANT_DAILY_LIMIT } from "./marketing";
 import { notifyApproval } from "./notify";
 
 export type PublishResult = { platform: string; name: string; ok: boolean; error?: string };
-const AUTO = ["facebook", "instagram", "linkedin"];
+const AUTO = ["facebook", "instagram", "linkedin", "youtube", "tiktok", "google_business"];
 
 /** Publishes one post to every connected account for its chosen platforms.
  *  Marked "published" only when every platform confirms; otherwise "failed" with reasons.
@@ -15,7 +15,7 @@ export async function publishPost(id: number, userId: number | null, origin: str
   if (!post) return { error: "Post not found." };
   if (!["approved", "scheduled", "failed"].includes(post.status)) return { error: "Only approved or scheduled posts can be published." };
   const wanted: string[] = (post.platforms ?? []).filter((x: string) => AUTO.includes(x));
-  if (!wanted.length) return { error: "Pick Facebook, Instagram or LinkedIn on this post first. Other platforms can't publish automatically yet." };
+  if (!wanted.length) return { error: "Pick at least one platform on this post first." };
   if (post.ws != null) {
     const n = (await sql`select count(distinct r.post_id)::int n from mk_post_results r join mk_posts p on p.id = r.post_id
       where p.ws = ${post.ws} and r.ok and r.post_id <> ${id} and r.created_at >= (date_trunc('day', now() at time zone 'Asia/Manila') at time zone 'Asia/Manila')`)[0].n;
@@ -28,7 +28,7 @@ export async function publishPost(id: number, userId: number | null, origin: str
   for (const a of accounts) {
     if (done.has(a.id)) { out.push({ platform: a.platform, name: a.name, ok: true }); continue; }
     try {
-      const rid = await publishTo(a as unknown as { platform: string; external_id: string; token_enc: string }, String(post.body || post.title), String(post.media_url || ""), origin);
+      const rid = await publishTo(a as unknown as { id: number; platform: string; external_id: string; token_enc: string }, String(post.body || post.title), String(post.media_url || ""), origin);
       await sql`insert into mk_post_results (post_id, account_id, platform, ok, remote_id) values (${id}, ${a.id}, ${a.platform}, true, ${rid})`;
       out.push({ platform: a.platform, name: a.name, ok: true });
     } catch (e) {

@@ -137,7 +137,7 @@ export function platformStatus() {
     { id: "instagram", name: "Instagram Business", needs: "META_APP_ID, META_APP_SECRET (via a linked Facebook Page)", ready: has("META_APP_ID", "META_APP_SECRET") },
     { id: "whatsapp", name: "WhatsApp Business (Cloud API inbox)", needs: "WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN · webhook URL: /api/whatsapp/webhook", ready: has("WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID") },
     { id: "linkedin", name: "LinkedIn Page", needs: "LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET", ready: has("LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET") },
-    { id: "youtube", name: "YouTube", needs: "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (YouTube Data API enabled)", ready: has("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
+    { id: "youtube", name: "YouTube", needs: "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (YouTube Data API v3 enabled)", ready: has("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
     { id: "tiktok", name: "TikTok", needs: "TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET", ready: has("TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET") },
     { id: "google_business", name: "Google Business Profile", needs: "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (Business Profile API access approved by Google)", ready: has("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
   ];

@@ -15,7 +15,7 @@ type State = {
   site: { orders30: number; sales30: number; products: number; customers: number };
   accounts?: { id: number; platform: string; name: string; status: string; error: string; expires_at: string | null }[];
   results?: { post_id: number; platform: string; ok: boolean; remote_id: string; error: string; at: string }[];
-  connectReady?: { facebook: boolean; linkedin: boolean };
+  connectReady?: { facebook: boolean; linkedin: boolean; google?: boolean; tiktok?: boolean };
   media?: { id: number; url: string; title: string; width: number | null; height: number | null; at: string }[];
   automation?: { orderAlert: boolean; orderConfirm: boolean; orderStatus: boolean; approval: boolean; publishFail: boolean; alertEmail: string };
   emailReady?: boolean;
@@ -141,8 +141,8 @@ function Pill({ st }: { st: Status }) { return <span className={"mk-pill st-" + 
 function PostActions({ p, can, run, onEdit }: { p: Post; can: Can; run: Run; onEdit?: () => void }) {
   return <div className="mk-row" style={{ gap: 6 }}>
     {onEdit && p.status !== "published" && (can("manager") || ["draft", "failed"].includes(p.status)) && can("editor") && <button type="button" className="mk-btn sm ghost" onClick={onEdit}>Edit</button>}
-    {["approved", "scheduled", "failed"].includes(p.status) && can("manager") && p.platforms.some((x) => ["facebook", "instagram", "linkedin"].includes(x)) && <button type="button" className="mk-btn sm" onClick={() => {
-      if (!confirm("Publish this post now to " + p.platforms.filter((x) => ["facebook", "instagram", "linkedin"].includes(x)).map((x) => PLAT[x]).join(", ") + "? It goes live on your connected accounts.")) return;
+    {["approved", "scheduled", "failed"].includes(p.status) && can("manager") && p.platforms.some((x) => ["facebook", "instagram", "linkedin", "youtube", "tiktok", "google_business"].includes(x)) && <button type="button" className="mk-btn sm" onClick={() => {
+      if (!confirm("Publish this post now to " + p.platforms.filter((x) => ["facebook", "instagram", "linkedin", "youtube", "tiktok", "google_business"].includes(x)).map((x) => PLAT[x]).join(", ") + "? It goes live on your connected accounts.")) return;
       run({ action: "publishNow", id: p.id }, "Publishing finished — see results on the post");
     }}>🚀 Publish now</button>}
     {MOVES[p.status].filter((m) => can(m.need)).map((m) => <button key={m.to} type="button" className={"mk-btn sm" + (m.to === "draft" || m.to === "failed" ? " ghost" : "")} onClick={() => {
@@ -434,13 +434,13 @@ function Accounts({ s, can }: { s: State; can: Can }) {
   const [busy, setBusy] = useState(0);
   const origin = typeof location !== "undefined" ? location.origin : "";
   const accs = s.accounts ?? [];
-  const cards: { id: string; name: string; connect?: "facebook" | "linkedin"; ready: boolean; needs: string; note: string }[] = [
+  const cards: { id: string; name: string; connect?: "facebook" | "linkedin" | "google" | "tiktok"; ready: boolean; needs: string; note: string }[] = [
     { id: "facebook", name: "Facebook Pages", connect: "facebook", ready: !!s.connectReady?.facebook, needs: "META_APP_ID, META_APP_SECRET", note: "Connecting Facebook also adds any Instagram Business account linked to your Page." },
     { id: "instagram", name: "Instagram Business", connect: "facebook", ready: !!s.connectReady?.facebook, needs: "META_APP_ID, META_APP_SECRET", note: "Connect through Facebook. Instagram posts need an image." },
     { id: "linkedin", name: "LinkedIn (your profile)", connect: "linkedin", ready: !!s.connectReady?.linkedin, needs: "LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET", note: "Posts to your personal LinkedIn. Company Page posting needs LinkedIn's Community Management approval." },
-    { id: "youtube", name: "YouTube", ready: false, needs: "", note: "Video uploads: later phase." },
-    { id: "tiktok", name: "TikTok", ready: false, needs: "", note: "Video uploads: later phase." },
-    { id: "google_business", name: "Google Business Profile", ready: false, needs: "", note: "Needs Google's Business Profile API approval: later phase." },
+    { id: "youtube", name: "YouTube", connect: "google", ready: !!s.connectReady?.google, needs: "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET", note: "Uploads the post's video (direct MP4/MOV link in the media field). First line of the text becomes the title." },
+    { id: "tiktok", name: "TikTok", connect: "tiktok", ready: !!s.connectReady?.tiktok, needs: "TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET", note: "Sends the post's video (direct MP4 link, up to 64 MB) to your TikTok inbox as a draft; open TikTok to add the caption and post." },
+    { id: "google_business", name: "Google Business Profile", connect: "google", ready: !!s.connectReady?.google, needs: "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET", note: "Posts updates (text + optional photo) to your Google Business listing. Needs Google to approve Business Profile API access for your project." },
   ];
   return <><H t="Social accounts" sub="Connect with each platform's official login. Access tokens are encrypted on the server and never shown in the browser." />
     {msg && <div className={"mk-note"} role="status">{msg}</div>}
@@ -455,6 +455,9 @@ function Accounts({ s, can }: { s: State; can: Can }) {
     <div className="mk-card"><div className="mk-label">App settings to copy into each developer app</div>
       <table className="mk-t"><tbody>
         <tr><td>Facebook / Instagram: Valid OAuth Redirect URI</td><td><code>{origin}/api/admin/social/callback/facebook</code></td></tr>
+        <tr><td>Google (YouTube + Business Profile): Authorized redirect URI</td><td><code>{origin}/api/admin/social/callback/google</code></td></tr>
+        <tr><td>Google Cloud APIs to enable</td><td><code>YouTube Data API v3</code>, <code>My Business Account Management API</code>, <code>My Business Business Information API</code>, <code>Google My Business API</code></td></tr>
+        <tr><td>TikTok: Redirect URI (Login Kit)</td><td><code>{origin}/api/admin/social/callback/tiktok</code> · products: Login Kit + Content Posting API · scopes <code>user.info.basic, video.upload</code></td></tr>
         <tr><td>LinkedIn: Authorized redirect URL</td><td><code>{origin}/api/admin/social/callback/linkedin</code></td></tr>
         <tr><td>Meta app: use case to add</td><td><b>Manage everything on your Page</b> → Customize → Add <code>pages_show_list, pages_read_engagement, pages_manage_posts, business_management</code></td></tr>
         <tr><td>Meta app: Instagram (optional)</td><td>Add the Instagram use case with <code>instagram_basic, instagram_content_publish</code>, then set <code>META_INSTAGRAM</code> = <code>1</code> in Vercel</td></tr>

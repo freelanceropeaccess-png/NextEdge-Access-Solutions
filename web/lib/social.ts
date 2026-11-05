@@ -1,10 +1,11 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { sql } from "./db";
+import { googleAuthUrl, tiktokAuthUrl, connectGoogle, connectTikTok, publishVideoPlatform } from "./social-video";
 
 /** Social connections (official OAuth) and publishing for Facebook Pages, Instagram Business and LinkedIn.
  *  Tokens are encrypted at rest (AES-256-GCM) and never sent to the browser. */
 
-export const SOCIAL_PLATFORMS = ["facebook", "linkedin"] as const; // connect flows (Instagram comes through Facebook)
+export const SOCIAL_PLATFORMS = ["facebook", "linkedin", "google", "tiktok"] as const; // connect flows (Instagram comes through Facebook)
 export type ConnectPlatform = (typeof SOCIAL_PLATFORMS)[number];
 /** Env values with stray spaces/quotes removed (common copy-paste issue). */
 const env = (k: string) => (process.env[k] ?? "").trim().replace(/^["']|["']$/g, "").trim();
@@ -40,6 +41,8 @@ export const linkedinReady = () => !!(process.env.LINKEDIN_CLIENT_ID && env("LIN
 export const redirectUri = (origin: string, p: ConnectPlatform) => `${origin}/api/admin/social/callback/${p}`;
 
 export function authorizeUrl(p: ConnectPlatform, origin: string, state: string, pages = false) {
+  if (p === "google") return googleAuthUrl(origin, state);
+  if (p === "tiktok") return tiktokAuthUrl(origin, state);
   if (p === "facebook") {
     const q = new URLSearchParams({ client_id: env("META_APP_ID"), redirect_uri: redirectUri(origin, p), state, response_type: "code" });
     // Facebook Login for Business apps use a saved configuration; classic Facebook Login uses a scope list.
@@ -66,6 +69,8 @@ async function saveAccount(platform: string, externalId: string, name: string, t
 
 /** Exchanges the OAuth code and stores every account it grants. Returns a short summary. */
 export async function completeConnect(p: ConnectPlatform, code: string, origin: string, userId: number, ws: number | null = null): Promise<string> {
+  if (p === "google") return connectGoogle(code, origin, userId, ws);
+  if (p === "tiktok") return connectTikTok(code, origin, userId, ws);
   if (p === "facebook") {
     const base = { client_id: env("META_APP_ID"), client_secret: env("META_APP_SECRET") };
     const short = await j(await fetch(`${GRAPH()}/oauth/access_token?${new URLSearchParams({ ...base, redirect_uri: redirectUri(origin, p), code })}`));
@@ -102,7 +107,8 @@ const absolute = (u: string, origin: string) => (u.startsWith("/") ? origin + u 
 const liEscape = (t: string) => t.replace(/[\\|{}@\[\]()<>#*_~]/g, (c) => "\\" + c);
 
 /** Publishes one post to one account. Returns the platform's post id, or throws with the platform's error. */
-export async function publishTo(acc: { platform: string; external_id: string; token_enc: string }, text: string, mediaUrl: string, origin: string): Promise<string> {
+export async function publishTo(acc: { id?: number; platform: string; external_id: string; token_enc: string }, text: string, mediaUrl: string, origin: string): Promise<string> {
+  if (["youtube", "tiktok", "google_business"].includes(acc.platform)) return publishVideoPlatform(acc, text, mediaUrl ? absolute(mediaUrl, origin) : "");
   const token = decrypt(acc.token_enc);
   const img = mediaUrl && /\.(jpe?g|png|webp|gif)(\?|$)|^\/api\/img\//i.test(mediaUrl) ? absolute(mediaUrl, origin) : "";
   if (acc.platform === "facebook") {

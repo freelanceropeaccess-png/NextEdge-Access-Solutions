@@ -2,6 +2,7 @@ import { sql } from "@/lib/db";
 import { originOf } from "@/lib/reset";
 import { metaReady, linkedinReady } from "@/lib/social";
 import { publishPost, cronToken } from "@/lib/publish";
+import { googleReady, tiktokReady } from "@/lib/social-video";
 import { loadInbox, sendReply } from "@/lib/inbox";
 import { loadInsights } from "@/lib/insights";
 import { autoSettings, sendMail, type AutoSettings } from "@/lib/notify";
@@ -14,6 +15,7 @@ import {
 } from "@/lib/marketing";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const aiHits = new Map<number, number[]>();
 function aiAllowed(uid: number) {
@@ -44,7 +46,7 @@ async function loadState(u: MkUser) {
     platforms: platformStatus(),
     accounts: (await sql`select id, platform, name, status, last_error, expires_at, updated_at from mk_social_accounts where ${inWs(u.ws)} order by platform, name`.catch(() => [])).map((a) => ({ id: a.id, platform: a.platform, name: a.name, status: a.status, error: a.last_error ?? "", expires_at: a.expires_at ? new Date(a.expires_at).toISOString() : null })),
     results: (await sql`select post_id, platform, ok, remote_id, error, created_at from mk_post_results where post_id in (select id from mk_posts where ${inWs(u.ws)}) order by id desc limit 500`.catch(() => [])).map((r) => ({ post_id: r.post_id, platform: r.platform, ok: r.ok, remote_id: r.remote_id ?? "", error: r.error ?? "", at: new Date(r.created_at).toISOString() })),
-    connectReady: { facebook: metaReady(), linkedin: linkedinReady() },
+    connectReady: { facebook: metaReady(), linkedin: linkedinReady(), google: googleReady(), tiktok: tiktokReady() },
     automation: await autoSettings(),
     reach7: await getSetting<{ fetchedAt?: string; pages?: { reached: number | null; views: number | null }[] }>(u.ws == null ? "mk_insights_7" : `mk_insights_7_ws${u.ws}`, {}).then((r) => (r.pages?.length ? { fetchedAt: r.fetchedAt, reached: r.pages.reduce((a, p) => a + (p.reached ?? 0), 0), views: r.pages.reduce((a, p) => a + (p.views ?? 0), 0) } : null)),
     emailReady: !!process.env.RESEND_API_KEY,
