@@ -9,7 +9,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ platform
   const { platform } = await params;
   const back = (msg: string) => NextResponse.redirect(new URL(`/admin/marketing?m=accounts&msg=${encodeURIComponent(msg)}`, req.url));
   const u = await getMkUser();
-  if (!u) return NextResponse.redirect(new URL("/admin/login", req.url));
+  if (!u) return NextResponse.redirect(new URL(u ? "/admin/marketing" : "/login", req.url));
   if (!can(u, "manager")) return back("Only marketing managers and admins can connect accounts.");
   if (!(SOCIAL_PLATFORMS as readonly string[]).includes(platform)) return back("That platform can't be connected yet.");
   const p = platform as ConnectPlatform;

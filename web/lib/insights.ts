@@ -26,11 +26,11 @@ async function series(pageId: string, metric: string, token: string, since: numb
   return vals.map((v: { end_time: string; value: number | Record<string, number> }) => ({ date: v.end_time.slice(0, 10), value: typeof v.value === "number" ? v.value : Object.values(v.value ?? {}).reduce((a, b) => a + Number(b || 0), 0) }));
 }
 
-export async function loadInsights(days = 28, force = false): Promise<InsightsReport> {
-  const cacheKey = `mk_insights_${days}`;
+export async function loadInsights(days = 28, force = false, ws: number | null = null): Promise<InsightsReport> {
+  const cacheKey = `mk_insights_${days}` + (ws == null ? "" : `_ws${ws}`);
   const cached = await getSetting<InsightsReport | { none: true }>(cacheKey, { none: true });
   if (!force && "fetchedAt" in cached && Date.now() - +new Date(cached.fetchedAt) < 30 * 60_000) return cached;
-  const accounts = await sql`select external_id, name, token_enc from mk_social_accounts where platform = 'facebook' and status = 'ok' order by name`;
+  const accounts = await sql`select external_id, name, token_enc from mk_social_accounts where platform = 'facebook' and status = 'ok' and ${ws == null ? sql`ws is null` : sql`ws = ${ws}`} order by name`;
   const until = Math.floor(Date.now() / 1000), since = until - days * 86400;
   const pages: PageInsights[] = [];
   for (const a of accounts) {

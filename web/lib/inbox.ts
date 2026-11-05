@@ -16,8 +16,8 @@ async function g(path: string, token: string) {
   return j;
 }
 
-export async function loadInbox(): Promise<{ threads: InboxThread[]; errors: string[] }> {
-  const accounts = await sql`select id, external_id, name, token_enc from mk_social_accounts where platform = 'facebook' and status = 'ok'`;
+export async function loadInbox(ws: number | null = null): Promise<{ threads: InboxThread[]; errors: string[] }> {
+  const accounts = await sql`select id, external_id, name, token_enc from mk_social_accounts where platform = 'facebook' and status = 'ok' and ${ws == null ? sql`ws is null` : sql`ws = ${ws}`}`;
   const threads: InboxThread[] = [], errors: string[] = [];
   for (const a of accounts) {
     const token = decrypt(a.token_enc);
@@ -40,7 +40,7 @@ export async function loadInbox(): Promise<{ threads: InboxThread[]; errors: str
       }
     } catch (e) { errors.push(`${a.name} comments: ${(e as Error).message}`); }
   }
-  try { threads.push(...(await waThreads())); } catch (e) { errors.push("WhatsApp: " + (e as Error).message); }
+  if (ws == null) try { threads.push(...(await waThreads())); } catch (e) { errors.push("WhatsApp: " + (e as Error).message); }
   const meta = await sql`select thread_key, status, assigned_to, note from mk_inbox_meta`.catch(() => []);
   const m = new Map(meta.map((r) => [r.thread_key, r]));
   threads.sort((x, y) => +new Date(y.at) - +new Date(x.at));
@@ -48,9 +48,9 @@ export async function loadInbox(): Promise<{ threads: InboxThread[]; errors: str
 }
 
 /** Sends a reply. Messenger replies only work within 24 hours of the customer's last message (Meta's rule). */
-export async function sendReply(accountId: number, kind: string, target: string, text: string): Promise<string> {
-  if (kind === "whatsapp") return waReply(target, text);
-  const a = (await sql`select external_id, token_enc from mk_social_accounts where id = ${accountId} and platform = 'facebook'`)[0];
+export async function sendReply(accountId: number, kind: string, target: string, text: string, ws: number | null = null): Promise<string> {
+  if (kind === "whatsapp") { if (ws != null) throw new Error("WhatsApp is for the NEAS team only."); return waReply(target, text); }
+  const a = (await sql`select external_id, token_enc from mk_social_accounts where id = ${accountId} and platform = 'facebook' and ${ws == null ? sql`ws is null` : sql`ws = ${ws}`}`)[0];
   if (!a) throw new Error("That Page is no longer connected.");
   const token = decrypt(a.token_enc);
   const url = kind === "message" ? `${GRAPH()}/${a.external_id}/messages` : `${GRAPH()}/${target}/comments`;

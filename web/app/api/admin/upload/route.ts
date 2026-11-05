@@ -1,12 +1,13 @@
 import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin";
+import { getMkUser } from "@/lib/marketing";
 import { bad, ok } from "@/lib/http";
 
 const TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 /** Staff-only image upload (logo, marketing media). Returns a site-relative URL. */
 export async function POST(req: Request) {
-  if (!(await requireAdmin())) return bad("Admin access required.", 403);
+  if (!(await requireAdmin()) && !(await getMkUser())) return bad("Please log in.", 403);
   const f = (await req.formData().catch(() => null))?.get("file");
   if (!(f instanceof File) || !f.size) return bad("Choose an image to upload.");
   if (!TYPES.includes(f.type)) return bad("Image must be JPG, PNG, WebP or GIF.");

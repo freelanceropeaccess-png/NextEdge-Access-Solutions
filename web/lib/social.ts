@@ -57,15 +57,15 @@ async function j(r: Response) {
   return body;
 }
 
-async function saveAccount(platform: string, externalId: string, name: string, token: string, expiresAt: Date | null, userId: number) {
-  await sql`insert into mk_social_accounts (platform, external_id, name, token_enc, expires_at, status, last_error, connected_by)
-    values (${platform}, ${externalId}, ${name.slice(0, 200)}, ${encrypt(token)}, ${expiresAt}, 'ok', null, ${userId})
+async function saveAccount(platform: string, externalId: string, name: string, token: string, expiresAt: Date | null, userId: number, ws: number | null) {
+  await sql`insert into mk_social_accounts (platform, external_id, name, token_enc, expires_at, status, last_error, connected_by, ws)
+    values (${platform}, ${externalId}, ${name.slice(0, 200)}, ${encrypt(token)}, ${expiresAt}, 'ok', null, ${userId}, ${ws})
     on conflict (platform, external_id) do update set name = excluded.name, token_enc = excluded.token_enc, expires_at = excluded.expires_at,
-      status = 'ok', last_error = null, connected_by = excluded.connected_by, updated_at = now()`;
+      status = 'ok', last_error = null, connected_by = excluded.connected_by, ws = excluded.ws, updated_at = now()`;
 }
 
 /** Exchanges the OAuth code and stores every account it grants. Returns a short summary. */
-export async function completeConnect(p: ConnectPlatform, code: string, origin: string, userId: number): Promise<string> {
+export async function completeConnect(p: ConnectPlatform, code: string, origin: string, userId: number, ws: number | null = null): Promise<string> {
   if (p === "facebook") {
     const base = { client_id: env("META_APP_ID"), client_secret: env("META_APP_SECRET") };
     const short = await j(await fetch(`${GRAPH()}/oauth/access_token?${new URLSearchParams({ ...base, redirect_uri: redirectUri(origin, p), code })}`));
@@ -73,9 +73,9 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
     const pages = await j(await fetch(`${GRAPH()}/me/accounts?${new URLSearchParams({ fields: "id,name,access_token,instagram_business_account{id,username}", limit: "100", access_token: long.access_token })}`));
     let fb = 0, ig = 0;
     for (const pg of pages.data ?? []) {
-      await saveAccount("facebook", pg.id, pg.name, pg.access_token, null, userId); fb++;
+      await saveAccount("facebook", pg.id, pg.name, pg.access_token, null, userId, ws); fb++;
       const iga = pg.instagram_business_account;
-      if (iga?.id) { await saveAccount("instagram", iga.id, iga.username ? "@" + iga.username : pg.name + " (Instagram)", pg.access_token + "|" + pg.id, null, userId); ig++; }
+      if (iga?.id) { await saveAccount("instagram", iga.id, iga.username ? "@" + iga.username : pg.name + " (Instagram)", pg.access_token + "|" + pg.id, null, userId, ws); ig++; }
     }
     if (!fb) throw new Error("No Facebook Pages were shared. Reconnect and tick your NEAS Page when Facebook asks.");
     return `${fb} Facebook Page(s)${ig ? ` and ${ig} Instagram account(s)` : ""} connected`;
@@ -83,7 +83,7 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
   const tok = await j(await fetch("https://www.linkedin.com/oauth/v2/accessToken", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(origin, p), client_id: env("LINKEDIN_CLIENT_ID"), client_secret: env("LINKEDIN_CLIENT_SECRET") }) }));
   const me = await j(await fetch("https://api.linkedin.com/v2/userinfo", { headers: { authorization: `Bearer ${tok.access_token}` } }));
-  await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId);
+  await saveAccount("linkedin", me.sub, me.name || "LinkedIn profile", tok.access_token, tok.expires_in ? new Date(Date.now() + tok.expires_in * 1000) : null, userId, ws);
   let orgs = 0;
   if (process.env.LINKEDIN_PAGES === "1" || /w_organization_social/.test(String(tok.scope ?? ""))) {
     const h = { authorization: `Bearer ${tok.access_token}`, "LinkedIn-Version": LI_VERSION(), "X-Restli-Protocol-Version": "2.0.0" };
@@ -92,7 +92,7 @@ export async function completeConnect(p: ConnectPlatform, code: string, origin: 
     for (const e of acl.elements ?? []) {
       const id = String(e.organization ?? "").split(":").pop(); if (!id) continue;
       const org = await fetch(`https://api.linkedin.com/rest/organizations/${id}`, { headers: h }).then((r) => r.json()).catch(() => ({}));
-      await saveAccount("linkedin", "org:" + id, (org.localizedName || "LinkedIn Page " + id) + " (Page)", tok.access_token, exp, userId); orgs++;
+      await saveAccount("linkedin", "org:" + id, (org.localizedName || "LinkedIn Page " + id) + " (Page)", tok.access_token, exp, userId, ws); orgs++;
     }
   }
   return `LinkedIn profile ${me.name ?? ""}${orgs ? ` and ${orgs} LinkedIn Page(s)` : ""} connected`.replace(/\s+/g, " ");

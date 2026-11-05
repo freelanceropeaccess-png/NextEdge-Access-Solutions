@@ -6,7 +6,7 @@ export const metadata = { title: "NextEdge Access Solutions — Links", descript
 
 export default async function Links() {
   const [links, social, biz] = await Promise.all([
-    sql`select id, label from mk_bio_links where active order by sort, id`.catch(() => []),
+    sql`select id, label from mk_bio_links where active and ws is null order by sort, id`.catch(() => []),
     getSetting<Social>("social", DEFAULT_SOCIAL), getSetting<Business>("business", DEFAULT_BUSINESS),
   ]);
   const logo = (biz as Business & { logo?: string }).logo;

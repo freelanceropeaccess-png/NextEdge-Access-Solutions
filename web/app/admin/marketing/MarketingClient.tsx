@@ -6,7 +6,7 @@ type Status = "draft" | "pending" | "approved" | "scheduled" | "published" | "fa
 type Post = { id: number; title: string; body: string; platforms: string[]; status: Status; scheduled_at: string | null; media_url: string; campaign: string; notes: string; author: string; created_at: string; updated_at: string };
 type Act = { id: number; post_id: number | null; action: string; detail: string; who: string; at: string };
 type Link = { id: number; label: string; url: string; sort: number; active: boolean; clicks: number };
-type Brand = { voice: string; audience: string; services: string; hashtags: string; avoid: string; languages: string; goal: number };
+type Brand = { company?: string; contact?: string; voice: string; audience: string; services: string; hashtags: string; avoid: string; languages: string; goal: number };
 type State = {
   me: { id: number; name: string; email: string; role: Role };
   posts: Post[]; activity: Act[]; links: Link[]; feeds: { id: number; name: string; url: string }[];
@@ -21,6 +21,8 @@ type State = {
   emailReady?: boolean;
   emailLog?: { to: string; subject: string; kind: string; ok: boolean; error: string; at: string }[];
   waReady?: boolean;
+  tenant?: boolean; dailyLimit?: number | null; publishedToday?: number | null;
+  members?: { id: number; name: string; email: string; status: string; ref: string; at: string | null; until?: string | null }[];
   reach7?: { fetchedAt?: string; reached: number; views: number } | null;
   scheduler?: { url: string; hasCronSecret: boolean; last: { at?: string; published?: number; failed?: number } };
 };
@@ -89,11 +91,11 @@ export default function MarketingClient() {
   return <div className={"mk" + (collapsed ? " mk-col" : "")}>
     <Style />
     <aside className={"mk-side" + (mobileNav ? " open" : "")}>
-      <div className="mk-logo"><img src="/img/logo.png" alt="NEAS" className="mk-logo-img" /><span className="mk-hide"><b>NEAS</b><small>Marketing Command Center</small></span></div>
-      <nav>{NAV.map((g) => <div key={g.group}><div className="mk-group mk-hide">{g.group}</div>
+      <div className="mk-logo"><img src="/img/logo.png" alt="NEAS" className="mk-logo-img" /><span className="mk-hide"><b>NEAS</b><small>{s.tenant ? `Your workspace · ${s.publishedToday ?? 0}/${s.dailyLimit} posts today` : "Marketing Command Center"}</small></span></div>
+      <nav>{NAV.map((g) => ({ ...g, items: s.tenant ? g.items.filter(([id]) => !["automation", "team"].includes(id)) : g.items })).filter((g) => g.items.length).map((g) => <div key={g.group}><div className="mk-group mk-hide">{g.group}</div>
         {g.items.map(([id, label, icon]) => <button key={id} type="button" className={"mk-nav" + (mod === id ? " on" : "")} onClick={() => go(id)} title={label}><span className="mk-ic">{icon}</span><span className="mk-hide">{label}</span>{id === "dashboard" && pendingN > 0 && <span className="mk-badge mk-hide">{pendingN}</span>}</button>)}</div>)}</nav>
       <button type="button" className="mk-collapse" onClick={() => { const v = !collapsed; setCollapsed(v); try { localStorage.setItem("mkCollapsed", v ? "1" : "0"); } catch {} }}>{collapsed ? "»" : "« Collapse"}</button>
-      <a className="mk-back mk-hide" href="/admin">← Store admin panel</a>
+      <a className="mk-back mk-hide" href={s.tenant ? "/account" : "/admin"}>{s.tenant ? "← My account" : "← Store admin panel"}</a>
     </aside>
     <div className="mk-body">
       <header className="mk-top">
@@ -416,12 +418,12 @@ function FacebookInsights({ s }: { s: State }) {
 
 function Brands({ s, can, run }: { s: State; can: Can; run: Run }) {
   const [b, setB] = useState(s.brand); const ro = !can("admin");
-  const F = (k: keyof Brand, label: string, rows = 3, hint = "") => <label className="mk-f">{label}{hint && <span className="mk-mini">{hint}</span>}<textarea rows={rows} disabled={ro} value={String(b[k])} onChange={(e) => setB({ ...b, [k]: e.target.value })} /></label>;
+  const F = (k: keyof Brand, label: string, rows = 3, hint = "") => <label className="mk-f">{label}{hint && <span className="mk-mini">{hint}</span>}<textarea rows={rows} disabled={ro} value={String(b[k] ?? "")} onChange={(e) => setB({ ...b, [k]: e.target.value })} /></label>;
   return <><H t="Brands" sub="Brand voice and guidelines the AI follows for every piece of content." />
     <div className="mk-card" style={{ maxWidth: 860 }}>
       <div className="mk-brandhead"><span className="mk-logo-mark">N</span><div><b>NextEdge Access Solutions (NEAS) OPC</b><small>IRATA rope access & height safety · Marilao, Bulacan</small></div><div className="mk-swatches">{["#071D29", "#101827", "#172235", "#CA9332", "#EBC07E"].map((c) => <span key={c} style={{ background: c }} title={c} />)}</div></div>
       {ro && <div className="mk-note">Only marketing admins can change brand settings.</div>}
-      {F("voice", "Brand voice")}{F("audience", "Target audience")}{F("services", "Services / industries covered", 4, "Separate with semicolons")}{F("hashtags", "Preferred hashtags", 2)}{F("avoid", "Things the AI must avoid", 2)}{F("languages", "Languages", 1)}
+      {s.tenant && <>{F("company", "Business name and what you do", 2)}{F("contact", "Contact details for posts (phone, website)", 1)}</>}{F("voice", "Brand voice")}{F("audience", "Target audience")}{F("services", "Services / industries covered", 4, "Separate with semicolons")}{F("hashtags", "Preferred hashtags", 2)}{F("avoid", "Things the AI must avoid", 2)}{F("languages", "Languages", 1)}
       <label className="mk-f">Monthly publishing goal (posts · 0 = unlimited)<input type="number" min={0} max={500} disabled={ro} value={b.goal} onChange={(e) => setB({ ...b, goal: Number(e.target.value) })} /></label>
       {!ro && <button type="button" className="mk-btn" onClick={() => run({ action: "saveBrand", brand: b }, "Brand saved ✓")}>Save brand settings</button>}
     </div></>;
@@ -732,7 +734,14 @@ function Team({ s, can, run }: { s: State; can: Can; run: Run }) {
       <tr><td><b>Editor</b></td><td>Write and edit drafts, use AI, submit for review.</td></tr>
       <tr><td><b>Manager</b></td><td>Approve, schedule, mark published/failed, reschedule, delete, manage bio links and feeds.</td></tr>
       <tr><td><b>Admin</b></td><td>Everything, plus brand settings and team roles.</td></tr>
-    </tbody></table><p className="mk-mini">To add a person, create a staff (admin) account for them first; they appear here automatically.</p></div></>;
+    </tbody></table><p className="mk-mini">To add a person, create a staff (admin) account for them first; they appear here automatically.</p></div>
+    <div className="mk-card"><div className="mk-label">Member workspaces · ₱100 per month</div>
+      <p className="mk-mini">Website members request access from My Account after paying ₱100. Check the payment reference against your bank, then approve: each approval adds 1 month (renewals extend from the current end date). Each member gets a private workspace (their own accounts and posts) limited to 10 published posts per day.</p>
+      {!(s.members ?? []).length ? <p className="mk-mini">No requests yet.</p> : <div style={{ overflowX: "auto" }}><table className="mk-t"><thead><tr><th>Member</th><th>Payment ref</th><th>Requested</th><th>Paid until</th><th>Status</th><th></th></tr></thead><tbody>
+        {(s.members ?? []).map((m) => <tr key={m.id}><td>{m.name}<div className="mk-mini">{m.email}</div></td><td><code>{m.ref || "—"}</code></td><td>{fmt(m.at)}</td><td>{m.until ? new Date(m.until).toLocaleDateString("en-PH", { dateStyle: "medium" }) : "—"}{m.until && +new Date(m.until) < Date.now() && <div className="mk-mini">expired</div>}</td><td><span className={"mk-pill " + (m.status === "approved" ? "st-approved" : m.status === "requested" ? "st-pending" : "st-failed")}>{m.status}</span></td>
+          <td>{can("admin") && <div className="mk-row">{(m.status !== "approved" || m.ref) && <button type="button" className="mk-btn sm" onClick={() => run({ action: "memberAccess", userId: m.id, status: "approved" }, "Approved +1 month — member emailed")}>{m.status === "approved" ? "Add 1 month" : "Approve 1 month"}</button>}{m.status === "requested" && <button type="button" className="mk-btn sm ghost" onClick={() => run({ action: "memberAccess", userId: m.id, status: "rejected" }, "Rejected")}>Reject</button>}{m.status === "approved" && <button type="button" className="mk-btn sm ghost" onClick={() => run({ action: "memberAccess", userId: m.id, status: "revoked" }, "Access removed")}>Remove access</button>}</div>}</td></tr>)}
+      </tbody></table></div>}
+    </div></>;
 }
 
 function Settings({ s }: { s: State }) {

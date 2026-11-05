@@ -98,5 +98,15 @@ await sql`create table if not exists mk_wa_messages (
   id serial primary key, wa_id text not null, name text not null default '', msg_id text unique, text text not null default '',
   mine boolean not null default false, status text, created_at timestamptz not null default now())`;
 await sql`create index if not exists mk_wa_messages_wa on mk_wa_messages (wa_id, created_at)`;
+// Workspaces: ws = owning user id for self-serve members; null = the NEAS team workspace.
+for (const t of ["mk_posts", "mk_activity", "mk_bio_links", "mk_feeds", "mk_social_accounts", "mk_media"]) {
+  await sql.unsafe(`alter table ${t} add column if not exists ws int references users(id) on delete cascade`);
+  await sql.unsafe(`create index if not exists ${t}_ws on ${t} (ws)`);
+}
+// Member access to the Marketing Command Center: none → requested → approved (or rejected).
+await sql`alter table users add column if not exists mk_access text`;
+await sql`alter table users add column if not exists mk_access_ref text`;
+await sql`alter table users add column if not exists mk_access_at timestamptz`;
+await sql`alter table users add column if not exists mk_access_until timestamptz`;
 console.log("[migrate] Database ready.");
 await sql.end();

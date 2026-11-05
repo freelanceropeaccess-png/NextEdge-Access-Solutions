@@ -7,16 +7,28 @@ export const STATUSES = ["draft", "pending", "approved", "scheduled", "published
 export type MkStatus = (typeof STATUSES)[number];
 export const PLATFORMS = ["facebook", "instagram", "linkedin", "youtube", "tiktok", "google_business"] as const;
 
-export type MkUser = { id: number; name: string; email: string; role: MkRole };
+export type MkUser = { id: number; name: string; email: string; role: MkRole; ws: number | null; tenant: boolean };
+/** Self-serve members may publish this many posts per day (Philippine time). NEAS staff are unlimited. */
+export const TENANT_DAILY_LIMIT = Number(process.env.MK_MEMBER_DAILY_LIMIT) || 10;
+/** SQL condition for "rows in this workspace". */
+export const inWs = (ws: number | null) => (ws == null ? sql`ws is null` : sql`ws = ${ws}`);
+export const brandKey = (ws: number | null) => (ws == null ? "mk_brand" : `mk_brand_ws${ws}`);
 
 /** Reuses the existing NEAS admin login. Only staff accounts (role=admin) can enter;
  *  marketing_role narrows what they may do inside the module (default: admin). */
 export async function getMkUser(): Promise<MkUser | null> {
   const u = await getUser();
-  if (!u || u.role !== "admin") return null;
+  if (!u) return null;
+  // Any signed-in website member gets a private workspace of their own (turn off with MK_MEMBERS=0).
+  if (u.role !== "admin") {
+    if (process.env.MK_MEMBERS === "0") return null;
+    const a = (await sql`select mk_access, mk_access_until from users where id = ${u.id}`)[0];
+    // ₱100 monthly subscription: approved and paid up to a date in the future.
+    return a?.mk_access === "approved" && a.mk_access_until && +new Date(a.mk_access_until) > Date.now() ? { id: u.id, name: u.name, email: u.email, role: "admin", ws: u.id, tenant: true } : null;
+  }
   const r = (await sql`select marketing_role from users where id = ${u.id}`)[0];
   const role = (ROLES as readonly string[]).includes(r?.marketing_role) ? (r.marketing_role as MkRole) : "admin";
-  return { id: u.id, name: u.name, email: u.email, role };
+  return { id: u.id, name: u.name, email: u.email, role, ws: null, tenant: false };
 }
 
 const rank = (r: MkRole) => ROLES.indexOf(r);
@@ -32,11 +44,11 @@ export const TRANSITIONS: Record<string, { to: MkStatus; need: MkRole; label: st
   published: [],
 };
 
-export async function logActivity(userId: number, action: string, detail = "", postId: number | null = null) {
-  await sql`insert into mk_activity (post_id, user_id, action, detail) values (${postId}, ${userId}, ${action}, ${detail.slice(0, 500)})`;
+export async function logActivity(userId: number, action: string, detail = "", postId: number | null = null, ws: number | null = null) {
+  await sql`insert into mk_activity (post_id, user_id, action, detail, ws) values (${postId}, ${userId}, ${action}, ${detail.slice(0, 500)}, ${ws})`;
 }
 
-export type Brand = { voice: string; audience: string; services: string; hashtags: string; avoid: string; languages: string; goal: number };
+export type Brand = { company?: string; contact?: string; voice: string; audience: string; services: string; hashtags: string; avoid: string; languages: string; goal: number };
 export const DEFAULT_BRAND: Brand = {
   voice: "Professional, safety-first, confident and approachable. IRATA-certified experts who explain clearly.",
   audience: "Facility managers, wind and telecom asset owners, contractors and safety officers in the Philippines and Asia.",
@@ -63,20 +75,23 @@ export const AI_TASKS: Record<string, string> = {
   schedule: "a recommended 2-week publishing schedule (day, time in Philippine time, platform, post idea) with reasons",
 };
 
-export async function generate(task: string, topic: string, extra: { tone?: string; brand: Brand }): Promise<{ text: string } | { error: string }> {
+export async function generate(task: string, topic: string, extra: { tone?: string; brand: Brand; tenant?: boolean }): Promise<{ text: string } | { error: string }> {
   const key = process.env.ANTHROPIC_API_KEY, gkey = process.env.GEMINI_API_KEY;
   if (!key && !gkey) return { error: "AI is not switched on yet. Add a free GEMINI_API_KEY (or an ANTHROPIC_API_KEY) in Vercel → Settings → Environment Variables, then redeploy." };
   const what = AI_TASKS[task];
   if (!what) return { error: "Unknown content type." };
   const b = extra.brand;
-  const system = `You write marketing content for NextEdge Access Solutions (NEAS) OPC, an IRATA-certified rope access and height-safety company in Marilao, Bulacan, Philippines. Phone/WhatsApp/Viber: +63 991 426 5886. Website: www.nextedge-access-solutions.com.
+  const who = extra.tenant
+    ? `You write marketing content for this business: ${b.company || "[business name not set — use a placeholder]"}. Contact details: ${b.contact || "[contact placeholder]"}.`
+    : `You write marketing content for NextEdge Access Solutions (NEAS) OPC, an IRATA-certified rope access and height-safety company in Marilao, Bulacan, Philippines. Phone/WhatsApp/Viber: +63 991 426 5886. Website: www.nextedge-access-solutions.com.`;
+  const system = `${who}
 Brand voice: ${b.voice}
 Audience: ${b.audience}
 Services: ${b.services}
 Preferred hashtags: ${b.hashtags}
 Avoid: ${b.avoid}
 Never invent certifications, project names, client names, statistics or prices. If a fact is needed and not given, leave a clear [placeholder].`;
-  const user = `Write ${what}.\nTopic / source content:\n${topic.slice(0, 6000)}${extra.tone ? `\nTone: ${extra.tone}` : ""}\nReturn only the content, ready to edit.`;
+  const user = `Write ${(extra.tenant ? what.replace("invite them to WhatsApp +63 991 426 5886 for quotes", "invite them to contact the business for quotes") : what)}.\nTopic / source content:\n${topic.slice(0, 6000)}${extra.tone ? `\nTone: ${extra.tone}` : ""}\nReturn only the content, ready to edit.`;
   if (!key && gkey) {
     const models = [process.env.MK_GEMINI_MODEL, "gemini-flash-latest", "gemini-flash-lite-latest"].filter((m, i, a): m is string => !!m && a.indexOf(m) === i);
     let last = "";
