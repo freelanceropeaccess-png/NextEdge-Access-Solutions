@@ -1,0 +1,121 @@
+diff --git a/web/site/home.html b/web/site/home.html
+index 0ddf526..4d9910a 100644
+--- a/web/site/home.html
++++ b/web/site/home.html
+@@ -528,6 +528,46 @@ body{background:var(--bg);color:var(--fg)}
+ .em-btn:hover{filter:brightness(1.1)}
+ .em-btn:focus-visible{outline:2px solid #0f172a;outline-offset:2px}
+ </style>
++<style id="neas-motion">
++html.neas-js .neas-r{opacity:0;transition:opacity .75s cubic-bezier(.2,.7,.2,1),transform .75s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms);will-change:opacity,transform}
++html.neas-js .neas-r.up{transform:translateY(34px)}
++html.neas-js .neas-r.left{transform:translateX(-44px)}
++html.neas-js .neas-r.right{transform:translateX(44px)}
++html.neas-js .neas-r.zoom{transform:scale(.92)}
++html.neas-js .neas-r.neas-in{opacity:1;transform:none}
++.neas-progress{position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transform-origin:0 50%}
++.site-header{transition:box-shadow .3s ease,background .3s ease}
++.nav-inner{transition:height .3s ease}
++.site-header.scrolled{box-shadow:0 8px 30px rgba(0,0,0,.45);background:rgba(7,9,15,.97)}
++.site-header.scrolled .nav-inner{height:54px}
++.nav-links a{position:relative}
++.nav-links li a:not(.acct-btn)::after{content:"";position:absolute;left:12px;right:12px;bottom:2px;height:2px;background:var(--accent);border-radius:2px;transform:scaleX(0);transform-origin:right;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
++.nav-links li a:not(.acct-btn):hover::after,.nav-links li a.active::after{transform:scaleX(1);transform-origin:left}
++.nav-links a.active{color:var(--fg)}
++@keyframes neasNavIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
++.nav-logo,.nav-links>li,.nav-cta{animation:neasNavIn .6s cubic-bezier(.2,.7,.2,1) both}
++.nav-links>li:nth-child(1){animation-delay:.10s}.nav-links>li:nth-child(2){animation-delay:.17s}.nav-links>li:nth-child(3){animation-delay:.24s}.nav-links>li:nth-child(4){animation-delay:.31s}.nav-links>li:nth-child(5){animation-delay:.38s}.nav-links>li:nth-child(n+6){animation-delay:.45s}.nav-cta{animation-delay:.5s}
++.nav-cta{position:relative;overflow:hidden}
++.nav-cta::after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:neasShine 4s ease-in-out 1.5s infinite}
++@keyframes neasShine{0%,60%{left:-70%}100%{left:130%}}
++html.neas-js .hero-eyebrow,html.neas-js .hero-title,html.neas-js .hero-sub,html.neas-js .hero-actions{animation:neasNavIn .9s cubic-bezier(.2,.7,.2,1) both;animation-name:neasHeroIn}
++@keyframes neasHeroIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
++html.neas-js .hero-eyebrow{animation-delay:.2s}html.neas-js .hero-title{animation-delay:.38s}html.neas-js .hero-sub{animation-delay:.56s}html.neas-js .hero-actions{animation-delay:.74s}
++section[id]{scroll-margin-top:64px}
++.nav-burger{display:none;width:42px;height:42px;border:1px solid var(--border2);border-radius:10px;background:rgba(255,255,255,.04);position:relative;flex-shrink:0;margin-left:-14px}
++.nav-burger span{position:absolute;left:11px;right:11px;height:2px;background:var(--fg);border-radius:2px;transition:transform .35s cubic-bezier(.2,.7,.2,1),opacity .2s,top .35s}
++.nav-burger span:nth-child(1){top:14px}.nav-burger span:nth-child(2){top:20px}.nav-burger span:nth-child(3){top:26px}
++.nav-burger.open span:nth-child(1){top:20px;transform:rotate(45deg)}
++.nav-burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
++.nav-burger.open span:nth-child(3){top:20px;transform:rotate(-45deg)}
++.m-menu{position:absolute;top:100%;left:0;right:0;background:rgba(7,9,15,.98);backdrop-filter:blur(14px);border-bottom:1px solid var(--border2);padding:0 20px;max-height:0;overflow:hidden;visibility:hidden;transition:max-height .5s cubic-bezier(.2,.7,.2,1),padding .5s,visibility 0s .5s}
++.m-menu.open{max-height:420px;padding:10px 20px 18px;visibility:visible;transition:max-height .5s cubic-bezier(.2,.7,.2,1),padding .5s,visibility 0s}
++.m-menu button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);color:var(--fg);font:600 16px Inter,system-ui,sans-serif;padding:14px 4px;opacity:0;transform:translateX(-22px);transition:opacity .4s ease,transform .4s ease,color .2s,padding-left .2s}
++.m-menu.open button{opacity:1;transform:none;transition-delay:calc(var(--i)*60ms + 120ms),calc(var(--i)*60ms + 120ms),0s,0s}
++.m-menu button:hover,.m-menu button.active{color:var(--accent);padding-left:12px}
++@media(max-width:900px){.nav-burger{display:block}.site-header .nav-inner{gap:12px}}
++@media (prefers-reduced-motion:reduce){html.neas-js .neas-r{opacity:1!important;transform:none!important;transition:none!important}.nav-logo,.nav-links>li,.nav-cta,.hero-eyebrow,.hero-title,.hero-sub,.hero-actions{animation:none!important}.nav-cta::after{animation:none}.m-menu,.m-menu button,.nav-burger span{transition:none!important}}
++</style>
+ </head><body>
+ <title>NextEdge Access Solutions</title>
+ <meta name="description" content="NEAS — IRATA-certified rope access, NDT inspection, industrial maintenance and height safety solutions across Asia. Based in the Philippines.">
+@@ -1262,4 +1302,69 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden){
+ })();
+ </script>
+ 
++<script id="neas-motion-js">
++(function(){
++var d=document,h=d.documentElement,rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
++var hdr=d.querySelector('.site-header'),nav=d.querySelector('.nav-inner');
++function ready(f){d.readyState==='loading'?d.addEventListener('DOMContentLoaded',f):f()}
++ready(function(){
++ try{
++ // header: progress bar, shrink on scroll
++ var bar=d.createElement('div');bar.className='neas-progress';if(hdr)hdr.appendChild(bar);
++ // mobile menu
++ var links=[].slice.call(d.querySelectorAll('.nav-links > li > a[href^="#"]'));
++ var burger=d.createElement('button');burger.type='button';burger.className='nav-burger';burger.setAttribute('aria-label','Menu');burger.setAttribute('aria-expanded','false');burger.innerHTML='<span></span><span></span><span></span>';
++ var mm=d.createElement('div');mm.className='m-menu';
++ links.forEach(function(a,i){var b=d.createElement('button');b.type='button';b.textContent=a.textContent;b.style.setProperty('--i',i);b.dataset.href=a.getAttribute('href');b.onclick=function(){close();setTimeout(function(){a.click()},120)};mm.appendChild(b)});
++ ['acct-login','acct-signup'].forEach(function(id,k){var o=d.getElementById(id);if(!o)return;var b=d.createElement('button');b.type='button';b.textContent=o.textContent;b.style.setProperty('--i',links.length+k);b.onclick=function(){close();setTimeout(function(){o.click()},120)};mm.appendChild(b)});
++ function close(){burger.classList.remove('open');mm.classList.remove('open');burger.setAttribute('aria-expanded','false')}
++ burger.onclick=function(){var o=!mm.classList.contains('open');burger.classList.toggle('open',o);mm.classList.toggle('open',o);burger.setAttribute('aria-expanded',o)};
++ if(nav&&hdr){nav.appendChild(burger);hdr.appendChild(mm)}
++ d.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
++ addEventListener('resize',function(){if(innerWidth>900)close()});
++ // scroll reveal
++ if(!rm&&'IntersectionObserver' in window){
++  h.classList.add('neas-js');
++  var seen=new Set();
++  function tag(sel,cls,step,per){[].slice.call(d.querySelectorAll(sel)).forEach(function(el,i){
++   if(seen.has(el)||el.classList.contains('reveal')||el.closest('.store-overlay'))return;seen.add(el);
++   var p=el.parentElement,idx=[].indexOf.call(p.children,el);
++   el.classList.add('neas-r',cls);el.style.setProperty('--d',((per?idx%per:idx)*step)+'ms')})}
++  tag('.section-eyebrow,.section-title,.section-lead','up',90,3);
++  tag('.about-grid > *:first-child','left',0);
++  tag('.about-grid > *:last-child','right',0);
++  tag('.value-item','right',110);
++  tag('.service-card','up',90,3);
++  tag('.gallery-item','zoom',80,4);
++  tag('#testimonials .container > div > div','up',120,3);
++  tag('.team-card','zoom',120,3);
++  tag('.contact-item','left',90);
++  tag('.footer-col,.footer-brand,.footer-emergency','up',100);
++  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;io.unobserve(el);el.classList.add('neas-in');
++   var wait=900+parseInt(el.style.getPropertyValue('--d')||0);
++   setTimeout(function(){el.classList.remove('neas-r','up','left','right','zoom','neas-in');el.style.removeProperty('--d')},wait)})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
++  [].slice.call(d.querySelectorAll('.neas-r')).forEach(function(el){io.observe(el)});
++ }
++ // count-up stats
++ var nums=[].slice.call(d.querySelectorAll('.stat-num')).filter(function(n){return !n.children.length&&/^\d+/.test(n.textContent.trim())});
++ if(!rm&&'IntersectionObserver' in window&&nums.length){
++  var co=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;co.unobserve(e.target);var n=e.target,t=n.textContent.trim(),m=t.match(/^(\d+)(.*)$/),to=+m[1];if(!to)return;var t0=performance.now();
++   (function f(now){var p=Math.min((now-t0)/1400,1),v=Math.round(to*(1-Math.pow(1-p,3)));n.textContent=v+m[2];if(p<1)requestAnimationFrame(f)})(t0)})},{threshold:.6});
++  nums.forEach(function(n){co.observe(n)});
++ }
++ // scroll: progress, header, hero fade, scroll-spy
++ var secs=links.map(function(a){return d.querySelector(a.getAttribute('href'))}),hc=d.querySelector('.hero-content'),tk=false;
++ function onScroll(){tk=false;var y=scrollY,max=h.scrollHeight-innerHeight;
++  bar.style.transform='scaleX('+(max>0?Math.min(y/max,1):0)+')';
++  if(hdr)hdr.classList.toggle('scrolled',y>30);
++  if(hc&&!rm&&y<innerHeight){hc.style.transform='translateY('+(y*.12)+'px)';hc.style.opacity=Math.max(1-y/(innerHeight*.9),0)}
++  var cur=-1;secs.forEach(function(s,i){if(s&&s.offsetParent!==null&&s.getBoundingClientRect().top<innerHeight*.4)cur=i});
++  links.forEach(function(a,i){a.classList.toggle('active',i===cur)});
++  [].forEach.call(mm.children,function(b){b.classList.toggle('active',!!b.dataset.href&&links[cur]&&b.dataset.href===links[cur].getAttribute('href'))})}
++ addEventListener('scroll',function(){if(!tk){tk=true;requestAnimationFrame(onScroll)}},{passive:true});
++ onScroll();
++ }catch(err){h.classList.remove('neas-js');console.warn('motion layer off',err)}
++});
++})();
++</script>
+ </body></html>

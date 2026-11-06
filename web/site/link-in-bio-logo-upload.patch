@@ -1,0 +1,62 @@
+diff --git a/web/app/admin/marketing/MarketingClient.tsx b/web/app/admin/marketing/MarketingClient.tsx
+index 2a13837..18bf104 100644
+--- a/web/app/admin/marketing/MarketingClient.tsx
++++ b/web/app/admin/marketing/MarketingClient.tsx
+@@ -11,6 +11,7 @@ type State = {
+   me: { id: number; name: string; email: string; role: Role };
+   posts: Post[]; activity: Act[]; links: Link[]; feeds: { id: number; name: string; url: string }[];
+   team: { id: number; name: string; email: string; role: Role }[]; brand: Brand;
++  business?: Record<string, string>;
+   platforms: { id: string; name: string; needs: string; ready: boolean }[]; aiReady: boolean;
+   site: { orders30: number; sales30: number; products: number; customers: number };
+   accounts?: { id: number; platform: string; name: string; status: string; error: string; expires_at: string | null }[];
+@@ -713,6 +714,18 @@ function Studio({ s, can, run, openCompose }: { s: State; can: Can; run: Run; op
+ 
+ function Bio({ s, can, run }: { s: State; can: Can; run: Run }) {
+   const [label, setLabel] = useState(""); const [url, setUrl] = useState("");
++  const [logo, setLogo] = useState<string | null>(null); const [logoMsg, setLogoMsg] = useState("");
++  const logoSrc = logo ?? s.business?.logo ?? "/img/logo.png";
++  async function uploadLogo(f: File) {
++    setLogoMsg("Uploading…");
++    const fd = new FormData(); fd.append("file", f);
++    const up = await fetch("/api/admin/upload", { method: "POST", body: fd }); const uj = await up.json().catch(() => ({}));
++    if (!up.ok || !uj.url) { setLogoMsg(uj.error || "Upload failed"); return; }
++    // The site settings API saves the whole business object, so send the current values with the new logo.
++    const sv = await fetch("/api/admin/site", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ business: { ...(s.business ?? {}), logo: uj.url } }) });
++    const sj = await sv.json().catch(() => ({}));
++    if (sv.ok) { setLogo(uj.url); setLogoMsg("Logo saved ✓"); } else setLogoMsg(sj.error || "Could not save the logo");
++  }
+   return <><H t="Link-in-Bio" sub="One link for your Instagram/TikTok bio, with click tracking."><a className="mk-btn ghost" href="/links" target="_blank" rel="noopener">Open public page ↗</a></H>
+     <div className="mk-grid2 wide">
+       <div className="mk-card"><div className="mk-label">Links ({s.links.length})</div>
+@@ -723,7 +736,8 @@ function Bio({ s, can, run }: { s: State; can: Can; run: Run }) {
+         {can("manager") && <><label className="mk-f">Button text<input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Shop PPE online" /></label><label className="mk-f">Link<input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.nextedge-access-solutions.com/store" /></label>
+           <button type="button" className="mk-btn" onClick={() => run({ action: "saveLink", label, url, sort: s.links.length }, "Link added ✓").then(() => { setLabel(""); setUrl(""); })}>Add link</button></>}
+       </div>
+-      <div className="mk-card"><div className="mk-label">Preview</div><div className="mk-phone"><div className="mk-logo-mark big">N</div><b>NextEdge Access Solutions</b><small>IRATA Rope Access · Height Safety</small>{s.links.filter((l) => l.active).map((l) => <span key={l.id} className="mk-biobtn">{l.label}</span>)}</div></div>
++      <div className="mk-card"><div className="mk-label">Preview</div><div className="mk-phone"><img src={logoSrc} alt="NEAS logo" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", background: "#fff" }} /><b>NextEdge Access Solutions</b><small>IRATA Rope Access · Height Safety</small>{s.links.filter((l) => l.active).map((l) => <span key={l.id} className="mk-biobtn">{l.label}</span>)}</div>
++        {can("manager") && <><label className="mk-btn ghost" style={{ cursor: "pointer", marginTop: 12, display: "inline-block" }}>Upload logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadLogo(f); e.target.value = ""; }} /></label>{logoMsg && <p className="mk-mini">{logoMsg}</p>}<p className="mk-mini">Square PNG, at least 512×512, up to 3 MB. This is the same company logo as in Settings.</p></>}</div>
+     </div></>;
+ }
+ 
+diff --git a/web/app/api/admin/marketing/route.ts b/web/app/api/admin/marketing/route.ts
+index b1d5949..0dd7583 100644
+--- a/web/app/api/admin/marketing/route.ts
++++ b/web/app/api/admin/marketing/route.ts
+@@ -9,7 +9,7 @@ import { loadInsights } from "@/lib/insights";
+ import { autoSettings, sendMail, type AutoSettings } from "@/lib/notify";
+ import { notifyApproval } from "@/lib/notify";
+ import { bad, ok } from "@/lib/http";
+-import { getSetting, setSetting } from "@/lib/settings";
++import { getSetting, setSetting, DEFAULT_BUSINESS, type Business } from "@/lib/settings";
+ import {
+   getMkUser, can, TRANSITIONS, STATUSES, PLATFORMS, ROLES, logActivity, generate, platformStatus,
+   DEFAULT_BRAND, cleanUrl, inWs, brandKey, memberLimit, type Brand, type MkStatus, type MkRole, type MkUser,
+@@ -44,6 +44,7 @@ async function loadState(u: MkUser) {
+     feeds: feeds.map((f) => ({ id: f.id, name: f.name, url: f.url })),
+     team: team.map((t) => ({ id: t.id, name: t.name, email: t.email, role: t.marketing_role })),
+     brand: { ...DEFAULT_BRAND, ...brand },
++    business: await getSetting<Business>("business", DEFAULT_BUSINESS),
+     platforms: platformStatus(),
+     accounts: (await sql`select id, platform, name, status, last_error, expires_at, updated_at from mk_social_accounts where ${inWs(u.ws)} order by platform, name`.catch(() => [])).map((a) => ({ id: a.id, platform: a.platform, name: a.name, status: a.status, error: a.last_error ?? "", expires_at: a.expires_at ? new Date(a.expires_at).toISOString() : null })),
+     results: (await sql`select post_id, platform, ok, remote_id, error, created_at from mk_post_results where post_id in (select id from mk_posts where ${inWs(u.ws)}) order by id desc limit 500`.catch(() => [])).map((r) => ({ post_id: r.post_id, platform: r.platform, ok: r.ok, remote_id: r.remote_id ?? "", error: r.error ?? "", at: new Date(r.created_at).toISOString() })),
