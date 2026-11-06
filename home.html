@@ -1,0 +1,1370 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.sp-img{all:unset;cursor:pointer;display:block;aspect-ratio:4/3;background:#fff;border-radius:10px;overflow:hidden;margin-bottom:4px}.sp-img img{width:100%;height:100%;object-fit:contain}.sm-img{display:block;max-width:100%;max-height:260px;margin:0 auto 10px;object-fit:contain}.sm-pricerow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.sm-share{border:0;background:#f97316;color:#fff;font-weight:700;border-radius:999px;padding:7px 14px;cursor:pointer}.sm-sharebox{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.sm-sharebox a,.sm-sharebox button{border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:#0f172a;text-decoration:none;cursor:pointer}
+</style><link rel="stylesheet" href="/mobile.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--bg2:#0d1117;--bg3:#161b27;--surface:#1c2333;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --fg:#e8edf5;--fg2:#8b9bb4;--fg3:#566275;
+  --accent:#f97316;--accent2:#fb923c;
+  --radius:8px;--t:0.2s ease;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+.container{max-width:1160px;margin-inline:auto;padding-inline:max(20px,env(safe-area-inset-left,0px))}
+
+/* TOPBAR */
+.topbar{background:var(--accent);color:#fff;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.06em;padding:7px 20px}
+
+/* HEADER */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,9,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;gap:32px;height:64px}
+.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nav-logo img{width:38px;height:38px;border-radius:50%}
+.nav-logo-text{font-size:14px;font-weight:700;letter-spacing:0.04em;line-height:1.2}
+.nav-logo-text span{color:var(--accent);display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase}
+.nav-links{display:flex;gap:2px;margin-left:auto;list-style:none}
+.nav-links a{font-size:13px;font-weight:500;color:var(--fg2);padding:6px 12px;border-radius:6px;transition:color var(--t),background var(--t)}
+.nav-links a:hover{color:var(--fg);background:rgba(255,255,255,0.05)}
+.nav-cta{margin-left:8px;padding:8px 18px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border-radius:var(--radius);white-space:nowrap;transition:background var(--t),transform var(--t)}
+.nav-cta:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding-top:64px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background-image:url('/img/hero-city.jpg');background-size:cover;background-position:center 30%;filter:brightness(0.32) saturate(0.8)}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(7,9,15,0.72) 40%,transparent 100%),linear-gradient(to top,rgba(7,9,15,0.85) 0%,transparent 55%)}
+.hero-content{position:relative;z-index:1;max-width:660px;padding-block:80px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.hero-eyebrow::before{content:'';display:block;width:24px;height:2px;background:var(--accent)}
+.hero-title{font-size:clamp(36px,5vw,62px);font-weight:800;line-height:1.08;letter-spacing:-0.02em;color:#fff;margin-bottom:20px}
+.hero-title em{color:var(--accent);font-style:normal}
+.hero-sub{font-size:16px;color:rgba(255,255,255,0.62);line-height:1.7;max-width:520px;margin-bottom:36px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-size:14px;font-weight:600;transition:all var(--t);border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.25)}
+.btn-outline:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.4)}
+.hero-stats{position:absolute;bottom:0;left:0;right:0;z-index:1}
+.hero-stats-inner{display:flex}
+.hero-stat{flex:1;padding:20px 24px;background:rgba(7,9,15,0.75);backdrop-filter:blur(8px);border-top:1px solid var(--border2);border-right:1px solid var(--border);text-align:center}
+.hero-stat:last-child{border-right:none}
+.stat-num{font-size:28px;font-weight:800;color:var(--accent);line-height:1}
+.stat-lbl{font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+
+/* TICKER */
+.ticker-wrap{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding-block:14px;white-space:nowrap}
+.ticker-track{display:inline-flex;animation:ticker 28s linear infinite}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{display:inline-flex;align-items:center;gap:8px;padding-inline:28px;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg2)}
+.ticker-item::before{content:'◆';color:var(--accent);font-size:7px}
+
+/* SECTIONS */
+section{padding-block:80px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.section-title{font-size:clamp(26px,3.5vw,40px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;color:#fff;margin-bottom:16px}
+.section-lead{font-size:16px;color:var(--fg2);max-width:560px;line-height:1.7}
+
+/* ABOUT */
+.about{background:var(--bg2)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.about-photo{border-radius:12px;overflow:hidden;aspect-ratio:4/3;position:relative}
+.about-photo img{width:100%;height:100%;object-fit:cover}
+.about-photo::after{content:'';position:absolute;inset:0;border-radius:12px;border:1px solid var(--border2);pointer-events:none}
+.value-list{margin-top:32px;display:flex;flex-direction:column;gap:16px}
+.value-item{display:flex;gap:14px;align-items:flex-start}
+.value-icon{width:36px;height:36px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.value-text strong{display:block;font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
+.value-text p{font-size:13px;color:var(--fg2);line-height:1.5}
+
+/* SERVICES */
+.services{background:var(--bg)}
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.service-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color var(--t),transform var(--t),box-shadow var(--t)}
+.service-card:hover{border-color:rgba(249,115,22,0.35);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.3)}
+.service-photo{width:100%;aspect-ratio:16/9;background-size:cover;background-position:center;background-color:var(--bg3)}
+.service-body{padding:20px}
+.service-tag{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.service-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:8px}
+.service-desc{font-size:13px;color:var(--fg2);line-height:1.6}
+.service-more{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:0.04em}
+
+/* GALLERY */
+.gallery{background:var(--bg2)}
+.gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:40px}
+.gallery-item{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:6px;background:var(--bg3)}
+.gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease}
+.gallery-item:hover img{transform:scale(1.06)}
+.gallery-caption{position:absolute;bottom:0;left:0;right:0;padding:28px 12px 10px;background:linear-gradient(to top,rgba(7,9,15,0.88),transparent);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.85);opacity:0;transition:opacity 0.2s}
+.gallery-item:hover .gallery-caption{opacity:1}
+
+/* PARTNERS */
+.partners{background:var(--bg)}
+.partners-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:40px}
+.partner-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 16px;text-align:center;transition:border-color var(--t),transform var(--t)}.partner-card img{border-radius:4px;background:#fff;padding:4px}
+.partner-card:hover{border-color:rgba(249,115,22,0.3);transform:translateY(-2px)}
+.partner-abbr{font-size:11px;font-weight:800;letter-spacing:0.1em;color:var(--accent);background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.15);border-radius:6px;padding:4px 8px;display:inline-block;margin-bottom:10px}
+.partner-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.partner-type{font-size:11px;color:var(--fg3)}
+
+/* TEAM */
+.team{background:var(--bg2)}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+.team-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:28px 24px;text-align:center}
+.team-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent) 0%,#c2410c 100%);color:#fff;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.team-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+.team-role{font-size:12px;color:var(--fg2)}
+
+/* CONTACT */
+.contact{background:var(--bg)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:48px}
+.contact-details{display:flex;flex-direction:column;gap:20px}
+.contact-item{display:flex;gap:14px;align-items:flex-start}
+.contact-icon{width:40px;height:40px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.contact-lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg3);margin-bottom:3px}
+.contact-val{font-size:14px;color:var(--fg)}
+.contact-form{display:flex;flex-direction:column;gap:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field label{font-size:12px;font-weight:600;color:var(--fg2);letter-spacing:0.04em}
+.form-field input,.form-field textarea,.form-field select{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;color:var(--fg);font-family:inherit;font-size:14px;outline:none;transition:border-color var(--t)}
+.form-field input:focus,.form-field textarea:focus{border-color:var(--accent)}
+.form-field textarea{resize:vertical;min-height:110px}
+.form-submit{width:100%;padding:13px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;transition:background var(--t),transform var(--t)}
+.form-submit:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;transform:translateY(12px);transition:transform 0.25s;position:relative}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-hero{width:100%;aspect-ratio:16/6;background-size:cover;background-position:center;background-color:var(--bg3)}
+.modal-body{padding:28px}
+.modal-tag{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.modal-title{font-size:24px;font-weight:800;color:#fff;margin-bottom:12px}
+.modal-desc{font-size:14px;color:var(--fg2);line-height:1.7;margin-bottom:20px}
+.modal-features{display:flex;flex-direction:column;gap:8px}
+.modal-feature{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--fg)}
+.modal-feature::before{content:'✓';color:var(--accent);font-weight:700;flex-shrink:0}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:50%;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* FOOTER */
+.site-footer{background:var(--bg2);border-top:1px solid var(--border);padding-block:40px 20px}
+.footer-inner{display:flex;gap:48px;align-items:flex-start;flex-wrap:wrap;margin-bottom:28px}
+.footer-brand{flex:0 0 220px}
+.footer-brand img{width:44px;height:44px;border-radius:50%;margin-bottom:10px}
+.footer-brand p{font-size:12px;color:var(--fg3);line-height:1.65;margin-top:6px}
+.footer-links{display:flex;gap:40px;flex:1;flex-wrap:wrap}
+.footer-col h4{font-size:11px;font-weight:700;color:var(--fg);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.footer-col ul li a{font-size:12px;color:var(--fg3);transition:color var(--t)}
+.footer-col ul li a:hover{color:var(--accent)}
+.footer-emergency{flex:0 0 auto;background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.18);border-radius:8px;padding:14px 18px}
+.footer-emergency p{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.footer-emergency .phone{font-size:13px;color:var(--fg);font-weight:600;line-height:1.8}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--fg3)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.5s ease,transform 0.5s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .services-grid{grid-template-columns:1fr 1fr}
+  .about-grid{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr}
+  .partners-grid{grid-template-columns:repeat(3,1fr)}
+  .gallery-grid{grid-template-columns:repeat(3,1fr)}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+}
+@media(max-width:600px){
+  .services-grid{grid-template-columns:1fr}
+  .team-grid{grid-template-columns:1fr}
+  .partners-grid{grid-template-columns:repeat(2,1fr)}
+  .gallery-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-stats-inner{flex-direction:column}
+  .hero-stat{border-right:none;border-bottom:1px solid var(--border)}
+  .form-row{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+}
+
+/* SIDE PANEL */
+.side-panel{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;align-items:flex-end;gap:0}
+.side-hotline{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#1e6fbe;color:#fff;font-size:12px;font-weight:700;letter-spacing:0.08em;padding:18px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:0 0 0 6px;transition:background var(--t);text-decoration:none;white-space:nowrap}
+.side-hotline:hover{background:#1a5fa8}
+.side-hotline::after{content:'›';font-size:16px;font-weight:400}
+.side-socials{display:flex;flex-direction:column;background:#1e6fbe;border-radius:0 0 0 6px;overflow:hidden;margin-top:2px}
+.side-social{width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.15);transition:background var(--t);text-decoration:none;font-weight:700}
+.side-social:last-child{border-bottom:none}
+.side-social:hover{background:#1a5fa8}
+.side-social svg{width:18px;height:18px;fill:currentColor}
+@media(max-width:600px){.side-panel{display:none}}
+
+/* PHOTO CAROUSEL */
+.photo-carousel{position:relative;background:var(--bg2);overflow:hidden;padding-block:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.photo-carousel::before,.photo-carousel::after{content:'';position:absolute;top:0;bottom:0;width:220px;z-index:2;pointer-events:none}
+.photo-carousel::before{left:0;background:linear-gradient(to right,var(--bg2) 0%,rgba(13,17,23,0.85) 40%,transparent 100%)}
+.photo-carousel::after{right:0;background:linear-gradient(to left,var(--bg2) 0%,rgba(13,17,23,0.85) 40%,transparent 100%)}
+.carousel-track{display:flex;gap:6px;animation:carouselScroll 40s linear infinite;width:max-content}
+.carousel-track:hover{animation-play-state:paused}
+@keyframes carouselScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.carousel-slide{flex-shrink:0;width:280px;height:180px;overflow:hidden;position:relative;border-radius:4px}
+.carousel-slide img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s ease}
+.carousel-slide:hover img{transform:scale(1.06)}
+.carousel-smoke{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(13,17,23,0.25) 100%);pointer-events:none}
+
+.hero-smoke-l{left:0;background:linear-gradient(to right,rgba(7,9,15,0.85) 0%,rgba(7,9,15,0.4) 60%,transparent 100%)}
+
+/* Smoke/fog animation for hero */
+@keyframes smoke-drift1 {
+  0%   { transform: translate(0,0) scale(1);   opacity:0.18; }
+  33%  { transform: translate(6%,3%) scale(1.12); opacity:0.28; }
+  66%  { transform: translate(-4%,6%) scale(1.06); opacity:0.22; }
+  100% { transform: translate(0,0) scale(1);   opacity:0.18; }
+}
+@keyframes smoke-drift2 {
+  0%   { transform: translate(0,0) scale(1.1); opacity:0.14; }
+  50%  { transform: translate(-8%,4%) scale(1.22); opacity:0.24; }
+  100% { transform: translate(0,0) scale(1.1); opacity:0.14; }
+}
+@keyframes smoke-drift3 {
+  0%   { transform: translate(0,0) scale(0.9); opacity:0.10; }
+  40%  { transform: translate(5%,-3%) scale(1.05); opacity:0.20; }
+  80%  { transform: translate(-3%,2%) scale(0.95); opacity:0.15; }
+  100% { transform: translate(0,0) scale(0.9); opacity:0.10; }
+}
+.hero-smoke {
+  position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:1;
+}
+.hero-smoke::before, .hero-smoke::after, .hero-smoke span {
+  content:''; display:block; position:absolute; border-radius:50%;
+  filter:blur(60px); mix-blend-mode:screen;
+}
+.hero-smoke::before {
+  width:70%; height:80%; top:-10%; left:-10%;
+  background: radial-gradient(ellipse at center, rgba(180,200,220,0.35) 0%, transparent 70%);
+  animation: smoke-drift1 14s ease-in-out infinite;
+}
+.hero-smoke::after {
+  width:60%; height:70%; bottom:-15%; right:-5%;
+  background: radial-gradient(ellipse at center, rgba(160,180,210,0.28) 0%, transparent 68%);
+  animation: smoke-drift2 18s ease-in-out infinite 3s;
+}
+.hero-smoke span {
+  width:50%; height:60%; top:20%; left:30%;
+  background: radial-gradient(ellipse at center, rgba(140,165,195,0.22) 0%, transparent 65%);
+  animation: smoke-drift3 22s ease-in-out infinite 6s;
+}
+
+.hero-smoke-r{right:0;background:linear-gradient(to left,rgba(7,9,15,0.85) 0%,rgba(7,9,15,0.4) 60%,transparent 100%)}</style>
+<style>
+.hero-bg{animation:neasPan 30s ease-in-out infinite alternate;transform-origin:center}
+@keyframes neasPan{0%{transform:scale(1.05) translateX(0)}100%{transform:scale(1.18) translateX(-3%)}}
+.neas-fog{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.neas-fog i{position:absolute;width:60vw;height:45vh;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.42),rgba(255,255,255,.12) 45%,transparent 70%);filter:blur(40px);animation:neasFog linear infinite}
+.neas-fog i:nth-child(1){top:55%;animation-duration:34s}
+.neas-fog i:nth-child(2){top:30%;animation-duration:46s;animation-delay:-15s;opacity:.7}
+.neas-fog i:nth-child(3){top:70%;animation-duration:40s;animation-delay:-28s}
+.neas-fog i:nth-child(4){top:10%;animation-duration:52s;animation-delay:-8s;opacity:.5}
+@keyframes neasFog{from{left:-65vw}to{left:105vw}}
+.hero-bg::after{background:linear-gradient(to right,rgba(7,9,15,0.6) 35%,rgba(7,9,15,0.15))!important}
+#about img{object-fit:contain}
+@media (prefers-reduced-motion:reduce){.hero-bg,.neas-fog i{animation:none}}
+</style>
+<style id="light-theme">
+:root{--bg:#f7f8fb;--bg2:#ffffff;--bg3:#eef1f6;--surface:#ffffff;--border:rgba(15,23,42,0.08);--border2:rgba(15,23,42,0.14);--fg:#0f172a;--fg2:#475569;--fg3:#64748b}
+body{background:var(--bg);color:var(--fg)}
+.site-header{background:rgba(255,255,255,0.92)!important;border-bottom:1px solid var(--border)}
+.service-card,.partner-card{box-shadow:0 1px 3px rgba(15,23,42,.06)}
+
+.section-title,.value-text strong,.service-title,.partner-name,.team-name,.modal-title,h1,h2,h3,h4{color:var(--fg)!important}
+/* light hero: bright misty overlay, dark text */
+.hero{--fg:#0f172a;--fg2:#334155;--border2:rgba(15,23,42,0.25)}
+.hero-bg::after{background:linear-gradient(to right,rgba(255,255,255,0.88) 30%,rgba(255,255,255,0.35) 70%,rgba(255,255,255,0.1))!important}
+.hero .hero-title{color:#0f172a!important}
+.hero .hero-sub{color:#334155!important}
+.hero .btn-outline{color:#0f172a;border-color:rgba(15,23,42,.3)}
+.hero .btn-outline:hover{background:rgba(15,23,42,.05)}
+.hero-smoke-l,.hero-smoke-r{background:none!important}
+.hero-stats-inner,.hero-stats{background:#ffffff!important;color:#0f172a}
+.hero-stat .stat-lbl{color:#475569}
+.site-header{background:rgba(7,9,15,0.95)!important;border-bottom:1px solid rgba(255,255,255,0.07)!important;--fg:#e8edf5;--fg2:#a3b0c4;color:#e8edf5}
+.site-header .nav-logo-text{color:#fff}
+.site-header .nav-links a:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.ticker-wrap{background:#07090f!important;border-color:rgba(255,255,255,0.07)!important}
+.ticker-item{color:#a3b0c4!important}
+.hero-bg{filter:brightness(1.05) saturate(0.9)!important}
+.hero-stat{background:rgba(255,255,255,0.92)!important}
+
+</style>
+<style id="footer-dark">
+.site-footer{overflow:clip}
+.footer-bottom{position:relative;isolation:isolate;padding:22px 0!important;border-top:none!important;color:#a3b0c4!important}
+.footer-bottom a{color:#e8edf5}
+.footer-bottom::before{content:'';position:absolute;top:0;bottom:-20px;left:50%;width:100vw;transform:translateX(-50%);background:#07090f;z-index:-2}
+.footer-bottom::after{content:'';position:absolute;top:0;bottom:-20px;left:50%;width:200vw;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse 18% 70% at 15% 50%,rgba(255,255,255,.26),transparent 70%),radial-gradient(ellipse 22% 80% at 45% 60%,rgba(255,255,255,.2),transparent 70%),radial-gradient(ellipse 16% 60% at 75% 40%,rgba(255,255,255,.24),transparent 70%);
+ filter:blur(14px);animation:footSmoke 26s linear infinite}
+@keyframes footSmoke{from{transform:translateX(-100%)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.footer-bottom::after{animation:none}}
+</style>
+<style id="hero-slideshow">
+.hero-slides{position:absolute;inset:0}
+.hero-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.04);transition:opacity 1.4s ease,transform 7s linear}
+.hero-slide.on{opacity:1;transform:scale(1.14)}
+.hero-vid-label{position:absolute;right:28px;bottom:120px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:rgba(7,9,15,.6);padding:6px 12px;border-radius:4px;opacity:0;transition:opacity .6s}
+.hero-vid-label.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.hero-slide{transition:opacity .3s}.hero-slide.on{transform:none}}
+</style>
+<style id="modal-cta">
+.modal-cta{margin-top:22px;padding-top:18px;border-top:1px solid var(--border);display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+.modal-quote{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;transition:background .2s,transform .2s}
+.modal-quote:hover{background:var(--accent2);transform:translateY(-1px)}
+.modal-contact{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.modal-contact a{color:var(--fg);text-decoration:none}
+.modal-contact a:hover{color:var(--accent)}
+.modal-contact span{color:var(--fg3);font-size:12px}
+@media(max-width:600px){.modal-cta{grid-template-columns:1fr}.modal-quote{width:100%}}
+</style>
+<style id="glass">
+/* lighter haze so photos show; glass panel carries readability */
+.hero-bg::after{background:linear-gradient(to right,rgba(255,255,255,0.55) 25%,rgba(255,255,255,0.15) 65%,rgba(255,255,255,0.05))!important}
+.hero-content{background:linear-gradient(135deg,rgba(255,255,255,0.62),rgba(255,255,255,0.32));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgba(255,255,255,0.7);border-radius:22px;box-shadow:0 20px 60px rgba(15,23,42,0.18),inset 0 1px 0 rgba(255,255,255,0.9);padding:44px 48px!important;margin-block:40px;position:relative;overflow:hidden;max-width:760px!important;isolation:isolate}
+.hero-content::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,0.35) 0%,transparent 18%);pointer-events:none;z-index:-1}
+.hero .btn-outline{background:rgba(255,255,255,0.35)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.8)!important;color:#0f172a!important}
+.hero .btn-outline:hover{background:rgba(255,255,255,0.6)!important}
+.hero .btn-primary{box-shadow:0 8px 24px rgba(249,115,22,0.35),inset 0 1px 0 rgba(255,255,255,0.35)}
+.site-header{background:rgba(7,9,15,0.82)!important;-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,0.12)!important}
+.hero-stat{background:rgba(255,255,255,0.45)!important;-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);border-top:1px solid rgba(255,255,255,0.8)!important;border-right:1px solid rgba(255,255,255,0.5)!important}
+.hero-stats-inner{border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 -8px 30px rgba(15,23,42,0.08)}
+.hero-vid-label{position:absolute!important;opacity:1!important;width:190px;text-align:center;box-sizing:border-box;bottom:auto!important;top:96px;right:72px!important;background:rgba(255,255,255,0.35)!important;color:#0f172a!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.7);border-radius:999px!important;padding:7px 14px!important;z-index:5}
+.service-card,.partner-card{background:rgba(255,255,255,0.75)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.9)!important;box-shadow:0 8px 30px rgba(15,23,42,0.07)!important}
+.modal-box{background:rgba(255,255,255,0.88)!important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+@media(max-width:640px){.hero-content{padding:28px 22px!important;border-radius:16px}}
+.hero{align-items:flex-end!important}
+.hero>.container{width:100%;max-width:none!important;padding-inline:clamp(16px,4vw,56px)!important}
+.hero-content{margin:0 0 150px 0!important}
+@media(max-width:768px){.hero{flex-direction:column;align-items:stretch!important;justify-content:flex-end}.hero-content{margin:90px 0 24px!important}.hero-stats{position:relative!important}.hero-stats-inner{flex-direction:row!important;flex-wrap:wrap}.hero-stat{flex:1 1 50%!important;padding:14px 10px!important}}
+</style>
+<style id="quote-pop">
+@keyframes quotePop{0%,86%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(249,115,22,0)}
+ 90%{transform:scale(1.12);box-shadow:0 0 0 6px rgba(249,115,22,.35)}
+ 94%{transform:scale(.97)}
+ 97%{transform:scale(1.04);box-shadow:0 0 0 12px rgba(249,115,22,0)}}
+.hero .btn-outline{animation:quotePop 5s ease-in-out infinite;animation-delay:2s;will-change:transform}
+.hero .btn-outline:hover{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.hero .btn-outline{animation:none}}
+</style>
+<style id="hero-autohide">
+.hero-content{transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1),filter .7s ease}
+.hero-content.is-hidden{opacity:0;transform:translateY(40px) scale(.96);filter:blur(6px);pointer-events:none}
+</style>
+<style id="hero-compact">
+.hero-content{max-width:520px!important;padding:28px 32px!important;border-radius:18px}
+.hero-content .hero-title{font-size:clamp(28px,3.2vw,42px)!important;margin-bottom:12px!important}
+.hero-content .hero-sub{font-size:14px!important;line-height:1.6!important;margin-bottom:20px!important;max-width:440px}
+.hero-content .hero-eyebrow{font-size:10px!important;margin-bottom:12px!important}
+.hero-content .btn{padding:10px 18px!important;font-size:13px!important}
+@media(max-width:768px){.hero-content{padding:22px 20px!important}}
+</style>
+<style>.hero-vid-label{opacity:1!important;transition:none!important}</style>
+<style>.hero-vid-label{opacity:1!important;position:absolute!important;top:96px!important;right:72px!important;bottom:auto!important;transition:none!important}@media(max-width:768px){.hero-vid-label{top:80px!important;right:16px!important}}</style>
+<style id="logo-big">
+.site-header>.container{max-width:none!important;padding-inline:clamp(16px,3vw,40px)!important}
+.nav-logo{position:relative;align-self:center;height:64px;gap:14px!important;align-items:center!important}
+.nav-logo img{margin-top:38px}
+.nav-logo img{width:96px!important;height:96px!important;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 3px rgba(255,255,255,.85);background:#0b0f17;position:relative;z-index:2;transition:transform .25s}
+.nav-logo:hover img{transform:scale(1.05)}
+.nav-logo-text{font-size:17px!important;margin-top:0;line-height:1.15!important}
+.nav-logo-text span{font-size:11px!important}
+@media(max-width:768px){.nav-logo{gap:8px!important}.nav-logo img{width:60px!important;height:60px!important}.nav-logo-text{font-size:13px!important;margin-top:0}.nav-logo img{margin-top:18px}.nav-logo-text span{font-size:9px!important;letter-spacing:.06em!important}.nav-cta{padding:7px 12px!important;font-size:12px!important;margin-left:auto}}
+</style>
+<style id="store-css">
+.store{padding:90px 0;background:linear-gradient(180deg,#eef2f8,#f7f8fb)}
+.store-sub{color:var(--fg2);max-width:640px;margin:0 0 26px}
+.store-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px}
+#store-q{flex:1 1 260px;padding:11px 14px;border-radius:10px;border:1px solid rgba(15,23,42,.14);background:rgba(255,255,255,.8);font:inherit}
+.store-cats{display:flex;flex-wrap:wrap;gap:6px}
+.store-cats button{border:1px solid rgba(15,23,42,.12);background:rgba(255,255,255,.7);border-radius:999px;padding:6px 12px;font-weight:600;font-size:12px;line-height:1;font-family:inherit;color:var(--fg2);cursor:pointer}
+.store-cats button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.sp{background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.95);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 22px rgba(15,23,42,.06)}
+.sp-cat{font-weight:700;font-size:10px;line-height:1;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.sp-name{font-weight:700;color:var(--fg);font-size:14px;line-height:1.35;flex:1}
+.sp-code{font-size:11px;color:var(--fg3)}
+.sp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.sp-price{font-weight:800;font-size:18px;color:var(--fg)}
+.sp-price.edit{cursor:pointer;border-bottom:1px dashed var(--accent)}
+.sp-price.ovr::after{content:' ✎';font-size:11px;color:var(--accent)}
+.sp-add{border:0;background:var(--accent);color:#fff;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px;line-height:1;font-family:inherit;cursor:pointer}
+.sp-add.in{background:#16a34a}
+.sp-dealer{font-size:11px;color:var(--fg3)}
+.store-admin{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px}
+.store-admin input{width:70px;padding:5px 8px;border-radius:6px;border:1px solid #fdba74;font:inherit}
+.store-admin-note{color:var(--fg3)}
+.store-quote{position:sticky;bottom:16px;margin-top:20px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(7,9,15,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;border-radius:14px;padding:14px 18px;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:20}
+.sq-actions{display:flex;gap:8px}
+#sq-send{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}
+.sq-ghost{background:transparent;color:#cbd5e1;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 14px;cursor:pointer}
+.store-note{font-size:12px;color:var(--fg3);margin-top:14px}
+.store-empty{grid-column:1/-1;color:var(--fg3);padding:30px;text-align:center}
+</style>
+<style id="store-css2">
+.sp{gap:8px}
+.sp-top{display:flex;justify-content:space-between;align-items:center}
+.sp-wish{width:30px;height:30px;border-radius:6px;border:0;background:#e5e7eb;color:#fff;font-size:15px;cursor:pointer;line-height:1}
+.sp-wish.on{background:#e11d48}
+.sp-name{all:unset;cursor:pointer;font-weight:700;color:var(--fg);font-size:14px;line-height:1.35;flex:1}
+.sp-name:hover{color:var(--accent);text-decoration:underline}
+.sp-qty{display:flex;align-items:center;gap:10px;font-weight:700}
+.sp-qty button{width:24px;height:24px;border-radius:50%;border:0;color:#fff;font-weight:800;cursor:pointer;line-height:1}
+.q-minus{background:#cbd5e1}.q-plus{background:#15803d}
+.sp-qty span{min-width:18px;text-align:center}
+.sp-qty em{font-style:normal;font-size:11px;color:#0f766e;margin-left:auto}
+.sp-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sp-buy,.sp-cart{border:0;border-radius:6px;padding:10px 6px;color:#fff;font-weight:800;font-size:12px;letter-spacing:.02em;cursor:pointer;font-family:inherit}
+.sp-buy{background:#15803d}.sp-buy:hover{background:#166534}
+.sp-cart{background:#0f766e}.sp-cart:hover{background:#115e59}
+.store-modal{position:fixed;inset:0;z-index:300;background:rgba(7,9,15,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}
+.store-modal[hidden]{display:none}
+.store-modal-box{position:relative;background:#fff;color:#0f172a;border-radius:16px;max-width:620px;width:100%;max-height:92vh;overflow:auto;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.store-modal-box h3{font-size:22px;margin:4px 0 8px}
+.store-modal-box h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#f97316;margin:18px 0 8px}
+.sm-close{position:absolute;top:12px;right:14px;border:0;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer}
+.sm-cat{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f97316}
+.sm-price{font-size:26px;font-weight:800}
+.store-modal-box table{width:100%;border-collapse:collapse;font-size:14px}
+.store-modal-box th,.store-modal-box td{text-align:left;padding:8px 10px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+.store-modal-box th{color:#64748b;font-weight:600;width:38%}
+.sm-order th{width:auto}.sm-order td:nth-child(2),.sm-order td:nth-child(3),.sm-order th:nth-child(2),.sm-order th:nth-child(3){text-align:right;white-space:nowrap}
+.sm-order small{display:block;color:#94a3b8;font-size:11px}
+.sm-tot td{font-weight:800;border-bottom:0}
+.sm-bank{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:4px 14px 10px;margin-top:14px}
+.sm-bank h4{color:#15803d!important}
+.sm-copy{margin-left:6px;border:1px solid #86efac;background:#fff;border-radius:6px;padding:2px 8px;font-size:12px;cursor:pointer}
+.sm-ref{font-size:14px;color:#334155;margin-bottom:10px}
+.sm-steps{font-size:14px;color:#334155;padding-left:20px;margin:14px 0}
+.sm-steps li{margin:4px 0}
+.sm-form{display:grid;gap:8px;margin-top:8px}
+.sm-form input,.sm-form textarea{padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}
+.sm-fine{font-size:12px;color:#64748b;margin-top:10px}
+.sm-done{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;font-size:14px;margin-top:10px}
+.store-modal-box .sp-btns{margin-top:16px}
+</style>
+<style id="store-css3">
+.store{display:none}.store.open{display:block;animation:storeIn .45s ease}
+@keyframes storeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.store .container{position:relative}
+.store-close{position:absolute;right:0;top:-6px;border:1px solid rgba(15,23,42,.15);background:#fff;border-radius:999px;padding:6px 14px;font-weight:600;font-size:12px;cursor:pointer;color:#334155}
+.store-modal-box input,.store-modal-box textarea{background:#fff!important;color:#0f172a!important;border:1px solid #cbd5e1!important;border-radius:8px;padding:10px 12px;font:inherit}
+.store-modal-box input::placeholder,.store-modal-box textarea::placeholder{color:#94a3b8}
+.sm-copy{color:#15803d!important;background:#fff!important;font-weight:700}
+.sm-slip{display:grid;gap:6px;border:1.5px dashed #86efac;background:#f0fdf4;border-radius:10px;padding:12px;font-size:14px;font-weight:600;color:#166534;cursor:pointer}
+.sm-slip small{font-weight:400;color:#475569}
+.sm-slip input{border:0!important;background:transparent!important;padding:0!important}
+.sm-slip-prev{display:flex;align-items:center;gap:10px;font-size:13px;color:#166534}
+.sm-slip-prev img{max-height:90px;border-radius:8px;border:1px solid #bbf7d0}
+.sa-btn{border:0;background:#0f766e;color:#fff;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer}
+.store-modal-box:has(.pl){max-width:820px}
+.pl-q{width:100%;margin:6px 0 10px;box-sizing:border-box}
+.pl-wrap{max-height:55vh;overflow:auto;border:1px solid #e2e8f0;border-radius:10px}
+.pl small{display:block;color:#94a3b8;font-size:11px}
+.pl input{width:110px;text-align:right;padding:6px 8px!important}
+.pl td:nth-child(2){white-space:nowrap;color:#64748b}
+.pl-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;font-size:13px;color:#334155}
+.pl-foot .sp-buy{padding:10px 18px}
+</style>
+<style id="admin-panel-css">
+.store .sp-dealer{display:none!important}
+.store .sp-price.edit{pointer-events:none;border-bottom:0!important}.store .sp-price.ovr::after{content:''!important}
+.admin-login-link{color:inherit;opacity:.55;text-decoration:none}.admin-login-link:hover{opacity:1;text-decoration:underline}.ap-gate{background:#f1f5f9;border-radius:10px;padding:14px;font-size:14px;color:#334155}
+.ap-ov{position:fixed;inset:0;z-index:400;background:rgba(7,9,15,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}
+.ap-ov[hidden]{display:none}
+.ap-box{position:relative;background:#fff;color:#0f172a;border-radius:16px;max-width:760px;width:100%;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.ap-box h3{margin:4px 0 14px;font-size:22px}
+.ap-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f97316}
+.ap-x{position:absolute;top:12px;right:14px;border:0;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer}
+.ap-box .store-admin{margin:0}.ap-note{font-size:12px;color:#64748b;margin:12px 0 0}
+</style>
+<style id="acct-css">
+.acct-btn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#e8edf5;border-radius:8px;padding:6px 12px;font:600 13px/1 Inter,system-ui,sans-serif;cursor:pointer;margin-left:4px}
+.acct-btn:hover{background:rgba(255,255,255,.08)}
+.acct-signup{background:#fff;color:#0f172a;border-color:#fff}.acct-signup:hover{background:#f1f5f9}
+.acct-form{display:grid;gap:10px}
+.acct-form label{display:grid;gap:5px;font-size:13px;font-weight:600;color:#475569}
+.acct-form input,.acct-form textarea{padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;color:#0f172a;background:#fff}
+.acct-go{border:0;background:#f97316;color:#fff;border-radius:8px;padding:12px;font-weight:700;cursor:pointer}
+.acct-msg{font-size:13px;color:#15803d;min-height:18px}
+.acct-info{background:#f1f5f9;border-radius:10px;padding:12px 14px;font-size:14px;color:#334155;line-height:1.55}
+.acct-social{display:grid;gap:9px;margin-top:14px}.acct-social a{display:block;text-align:center;text-decoration:none;border-radius:8px;padding:12px;font-weight:700}.acct-google{background:#fff;color:#1f2937;border:1px solid #cbd5e1}.acct-facebook{background:#1877f2;color:#fff}.acct-email{display:block;text-align:center;margin-top:12px;color:#0f766e;font-size:13px;font-weight:700;text-decoration:none}
+.acct-tabs{display:flex;gap:6px;margin-bottom:14px}.acct-tabs button{flex:1;border:1px solid #e2e8f0;background:#fff;border-radius:8px;padding:9px;font-weight:700;cursor:pointer}.acct-tabs button.on{background:#0f172a;color:#fff;border-color:#0f172a}
+@media(max-width:768px){.acct-btn{padding:5px 9px;font-size:12px}}
+</style>
+<style id="mobile-menu-css">
+.nav-toggle{display:none;flex:0 0 auto;width:44px;height:44px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.08);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+.nav-toggle span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;transition:transform .2s,opacity .2s}
+.nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{display:flex;flex-direction:column;gap:2px;padding:8px 0 16px;border-top:1px solid rgba(255,255,255,.1)}
+.mobile-menu[hidden]{display:none!important}
+.mobile-menu a{color:#e8edf5;font-size:16px;font-weight:600;padding:12px 14px;border-radius:10px;text-decoration:none}
+.mobile-menu a:hover,.mobile-menu a:focus-visible{background:rgba(255,255,255,.08)}
+.mobile-menu .mm-store{background:rgba(249,115,22,.18);color:#fdba74}
+.mobile-menu .mm-cta{background:#f97316;color:#fff;text-align:center;margin-top:6px}
+@media(max-width:1024px){.nav-links li:not(.acct-li){display:none!important}.nav-links{margin-left:auto}.nav-toggle{display:flex}.site-header .nav-cta{display:none!important}}
+@media(min-width:1025px){.mobile-menu{display:none!important}}
+.mobile-menu .mm-acct{display:none}
+@media(max-width:600px){.nav-links .acct-li{display:none!important}.mobile-menu .mm-acct{display:block}}
+.em-list{display:grid;gap:8px}
+.em-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.em-num{font-weight:700;font-size:14px;min-width:132px}
+.em-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none!important;color:#fff!important;white-space:nowrap}
+.em-call{background:#f97316}.em-wa{background:#16a34a}.em-vb{background:#7360f2}
+.em-btn:hover{filter:brightness(1.1)}
+.em-btn:focus-visible{outline:2px solid #0f172a;outline-offset:2px}
+</style>
+<style id="neas-motion">
+html.neas-js .neas-r{opacity:0;transition:opacity .75s cubic-bezier(.2,.7,.2,1),transform .75s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms);will-change:opacity,transform}
+html.neas-js .neas-r.up{transform:translateY(34px)}
+html.neas-js .neas-r.left{transform:translateX(-44px)}
+html.neas-js .neas-r.right{transform:translateX(44px)}
+html.neas-js .neas-r.zoom{transform:scale(.92)}
+html.neas-js .neas-r.neas-in{opacity:1;transform:none}
+.neas-progress{position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transform-origin:0 50%}
+.site-header{transition:box-shadow .3s ease,background .3s ease}
+.nav-inner{transition:height .3s ease}
+.site-header.scrolled{box-shadow:0 8px 30px rgba(0,0,0,.45);background:rgba(7,9,15,.97)}
+.site-header.scrolled .nav-inner{height:54px}
+.nav-links a{position:relative}
+.nav-links li a:not(.acct-btn)::after{content:"";position:absolute;left:12px;right:12px;bottom:2px;height:2px;background:var(--accent);border-radius:2px;transform:scaleX(0);transform-origin:right;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.nav-links li a:not(.acct-btn):hover::after,.nav-links li a.active::after{transform:scaleX(1);transform-origin:left}
+.nav-links a.active{color:var(--fg)}
+@keyframes neasNavIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.nav-logo,.nav-links>li,.nav-cta{animation:neasNavIn .6s cubic-bezier(.2,.7,.2,1) both}
+.nav-links>li:nth-child(1){animation-delay:.10s}.nav-links>li:nth-child(2){animation-delay:.17s}.nav-links>li:nth-child(3){animation-delay:.24s}.nav-links>li:nth-child(4){animation-delay:.31s}.nav-links>li:nth-child(5){animation-delay:.38s}.nav-links>li:nth-child(n+6){animation-delay:.45s}.nav-cta{animation-delay:.5s}
+.nav-cta{position:relative;overflow:hidden}
+.nav-cta::after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:neasShine 4s ease-in-out 1.5s infinite}
+@keyframes neasShine{0%,60%{left:-70%}100%{left:130%}}
+html.neas-js .hero-eyebrow,html.neas-js .hero-title,html.neas-js .hero-sub,html.neas-js .hero-actions{animation:neasNavIn .9s cubic-bezier(.2,.7,.2,1) both;animation-name:neasHeroIn}
+@keyframes neasHeroIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+html.neas-js .hero-eyebrow{animation-delay:.2s}html.neas-js .hero-title{animation-delay:.38s}html.neas-js .hero-sub{animation-delay:.56s}html.neas-js .hero-actions{animation-delay:.74s}
+section[id]{scroll-margin-top:64px}
+.nav-burger{display:none;width:42px;height:42px;border:1px solid var(--border2);border-radius:10px;background:rgba(255,255,255,.04);position:relative;flex-shrink:0;margin-left:-14px}
+.nav-burger span{position:absolute;left:11px;right:11px;height:2px;background:var(--fg);border-radius:2px;transition:transform .35s cubic-bezier(.2,.7,.2,1),opacity .2s,top .35s}
+.nav-burger span:nth-child(1){top:14px}.nav-burger span:nth-child(2){top:20px}.nav-burger span:nth-child(3){top:26px}
+.nav-burger.open span:nth-child(1){top:20px;transform:rotate(45deg)}
+.nav-burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-burger.open span:nth-child(3){top:20px;transform:rotate(-45deg)}
+.m-menu{position:absolute;top:100%;left:0;right:0;background:rgba(7,9,15,.98);backdrop-filter:blur(14px);border-bottom:1px solid var(--border2);padding:0 20px;max-height:0;overflow:hidden;visibility:hidden;transition:max-height .5s cubic-bezier(.2,.7,.2,1),padding .5s,visibility 0s .5s}
+.m-menu.open{max-height:420px;padding:10px 20px 18px;visibility:visible;transition:max-height .5s cubic-bezier(.2,.7,.2,1),padding .5s,visibility 0s}
+.m-menu button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);color:var(--fg);font:600 16px Inter,system-ui,sans-serif;padding:14px 4px;opacity:0;transform:translateX(-22px);transition:opacity .4s ease,transform .4s ease,color .2s,padding-left .2s}
+.m-menu.open button{opacity:1;transform:none;transition-delay:calc(var(--i)*60ms + 120ms),calc(var(--i)*60ms + 120ms),0s,0s}
+.m-menu button:hover,.m-menu button.active{color:var(--accent);padding-left:12px}
+@media(max-width:900px){.nav-burger{display:block}.site-header .nav-inner{gap:12px}}
+@media (prefers-reduced-motion:reduce){html.neas-js .neas-r{opacity:1!important;transform:none!important;transition:none!important}.nav-logo,.nav-links>li,.nav-cta,.hero-eyebrow,.hero-title,.hero-sub,.hero-actions{animation:none!important}.nav-cta::after{animation:none}.m-menu,.m-menu button,.nav-burger span{transition:none!important}}
+</style>
+</head><body>
+<title>NextEdge Access Solutions</title>
+<meta name="description" content="NEAS — IRATA-certified rope access, NDT inspection, industrial maintenance and height safety solutions across Asia. Based in the Philippines.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+
+
+
+<div class="topbar">🚨 24/7 Emergency Line: +63 991 426 5886 &nbsp;|&nbsp; +63 995 770 8144</div>
+
+<header class="site-header">
+  <div class="container">
+    <nav class="nav-inner">
+      <a class="nav-logo" href="#hero">
+        <img src="/img/83c162b165ae.png" alt="NEAS Logo">
+        <div class="nav-logo-text">NEXTEDGE<span>Access Solutions · OPC</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#services">Services</a></li>
+        
+        <li><a href="#store">Online Store</a></li>
+        <li><a href="#partners">Partners</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li class="acct-li"><button type="button" class="acct-btn" id="acct-login">Log in</button></li>
+        <li class="acct-li"><button type="button" class="acct-btn acct-signup" id="acct-signup">Sign up</button></li>
+      </ul>
+      <a href="#contact" class="nav-cta">Get a Quote</a>
+      <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
+    </nav>
+    <div class="mobile-menu" id="mobile-menu" hidden>
+      <a href="#store" class="mm-store">🛒 Online Store</a>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#partners">Partners</a>
+      <a href="#contact">Contact</a>
+      <a href="#" class="mm-acct" data-acct="acct-login">Log in</a>
+      <a href="#" class="mm-acct" data-acct="acct-signup">Sign up</a>
+      <a href="#contact" class="mm-cta">Get a Quote</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="hero"><div class="hero-vid-label on">High-Rise Facades</div>
+  <div class="hero-bg"><div class="hero-slides"><div class="hero-slide" data-label="Wind Turbines" style="background-image:url('/img/hero-wind.jpg')"></div><div class="hero-slide" data-label="Offshore Oil Rigs" style="background-image:url('/img/hero-oilrig.jpg')"></div><div class="hero-slide" data-label="Telecom Towers" style="background-image:url('/img/hero-telecom.jpg')"></div><div class="hero-slide" data-label="Met Mast Towers" style="background-image:url('/img/hero-metmast.jpg')"></div><div class="hero-slide" data-label="Bridges" style="background-image:url('/img/hero-bridge.jpg')"></div><div class="hero-slide" data-label="Power Plants" style="background-image:url('/img/hero-power.jpg')"></div></div></div><div class="neas-fog"><i></i><i></i><i></i><i></i></div>
+        <div class="hero-smoke"><span></span></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-eyebrow">IRATA-Certified · Asia Trusted Partner</div>
+      <h1 class="hero-title">Height is not a limit.<br><em>It is our expertise.</em></h1>
+      <p class="hero-sub">NextEdge Access Solutions. delivers safe, efficient, and cost-effective rope access services for industrial, commercial, wind energy, and telecom projects across Asia.</p>
+      <div class="hero-actions">
+        <a href="#services" class="btn btn-primary">Our Services</a>
+        <a href="#contact" class="btn btn-outline">Request a Quote</a>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="container">
+      <div class="hero-stats-inner">
+        <div class="hero-stat"><div class="stat-num">20+</div><div class="stat-lbl">Years Experience</div></div>
+        <div class="hero-stat"><div class="stat-num">10+</div><div class="stat-lbl">Certified Professionals</div></div>
+        <div class="hero-stat"><div class="stat-num">10+</div><div class="stat-lbl">Projects Delivered</div></div>
+        <div class="hero-stat"><div class="stat-num">0 LTI</div><div class="stat-lbl">Safety Record 2024</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="reveal">
+        <div class="section-eyebrow">About NEAS</div>
+        <h2 class="section-title">Filipino OFW Professionals Bringing World-Class Access Solutions to Asia</h2>
+        <p class="section-lead">At NextEdge Access Solutions (NEAS) OPC, we are a group of Filipino OFW rope access professionals — combining global experience from landmark projects including the Burj Khalifa (Dubai), KAFD &amp; Princess Noura University (Saudi Arabia), Zigzag Tower (Qatar), and RasGas — to deliver next-generation access solutions across Asia.</p>
+        <div class="value-list">
+          <div class="value-item"><div class="value-icon">🔒</div><div class="value-text"><strong>Integrity</strong><p>We deliver on promises with ethical conduct and full accountability at every step.</p></div></div>
+          <div class="value-item"><div class="value-icon">💡</div><div class="value-text"><strong>Innovation</strong><p>Continuously seeking smarter, safer, and more efficient ways to deliver solutions.</p></div></div>
+          <div class="value-item"><div class="value-icon">🤝</div><div class="value-text"><strong>Collaboration</strong><p>Strong partnerships with clients, employees, and partners create sustainable results.</p></div></div>
+        </div>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+          <div class="section-eyebrow" style="margin-bottom:12px">Our Direction</div>
+          <div style="display:grid;gap:16px">
+            <div><strong style="color:var(--fg);font-size:14px">Vision</strong><p style="color:var(--fg2);font-size:14px;margin-top:4px;line-height:1.6">To be the industry standard for excellence and innovation in rope access, expanding across Asia to deliver world-class solutions that exceed expectations.</p></div>
+            <div><strong style="color:var(--fg);font-size:14px">Mission</strong><p style="color:var(--fg2);font-size:14px;margin-top:4px;line-height:1.6">To provide next-generation access solutions that prioritize safety, precision, and efficiency, while fostering partnerships built on trust and consistent results.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="about-photo reveal">
+        <img src="/img/f6df6d31ae7e.jpg" alt="NEAS technician window buffing high-rise Philippines" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="services">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">What We Do</div>
+      <h2 class="section-title">Our Services</h2>
+      <p class="section-lead">Comprehensive rope access and height safety solutions for every industry and environment.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal" onclick="openModal('rope-access')" role="button" tabindex="0">
+        <div class="service-photo" style="background-image:url('/img/ce6c22d9bace.jpg')"></div>
+        <div class="service-body">
+          <div class="service-tag">Rope Access</div>
+          <div class="service-title">Rope Access &amp; Facade Works</div>
+          <p class="service-desc">IRATA-certified technicians for inspection, maintenance, cleaning, and repair at height — faster and more cost-effective than scaffolding.</p>
+          <span class="service-more">Learn More →</span>
+        </div>
+      </div>
+      <div class="service-card reveal" onclick="openModal('ndt-inspection')" role="button" tabindex="0">
+        <div class="service-photo" style="background-image:url('/img/877206fcf5ba.jpg')"></div>
+        <div class="service-body">
+          <div class="service-tag">Inspection</div>
+          <div class="service-title">NDT &amp; Industrial Inspection</div>
+          <p class="service-desc">Non-destructive testing via rope access for offshore, onshore, marine, and industrial assets — visual, UT, MT and more.</p>
+          <span class="service-more">Learn More →</span>
+        </div>
+      </div>
+      <div class="service-card reveal" onclick="openModal('coatings')" role="button" tabindex="0">
+        <div class="service-photo" style="background-image:url('/img/6447ca2a761e.jpg')"></div>
+        <div class="service-body">
+          <div class="service-tag">Coatings</div>
+          <div class="service-title">Blasting, Painting &amp; Coatings</div>
+          <p class="service-desc">Surface preparation, protective coatings, and repainting for offshore structures, industrial facilities, and commercial buildings.</p>
+          <span class="service-more">Learn More →</span>
+        </div>
+      </div>
+            <div class="service-card reveal" onclick="openModal('metmast-telecom')" role="button" tabindex="0">
+        <div class="service-photo" style="background-image:url('/img/0cc8f91dab71.jpg')"></div>
+        <div class="service-body">
+          <div class="service-tag">Met Mast &amp; Telecom</div>
+          <div class="service-title">Met Mast &amp; Telecom Tower Services</div>
+          <p class="service-desc">Met Mast erection, commissioning, Lidar installation and annual maintenance. Plus cell site inspection, antenna installation, and telecom tower services.</p>
+          <span class="service-more">Learn More →</span>
+        </div>
+      </div>
+      <div class="service-card reveal" onclick="openModal('training')" role="button" tabindex="0">
+        <div class="service-photo" style="background-image:url('/img/390f5ed3244c.jpg')"></div>
+        <div class="service-body">
+          <div class="service-tag">Training &amp; PPE</div>
+          <div class="service-title">Training, Consultancy &amp; PPE Supply</div>
+          <p class="service-desc">Professional courses in rope access, WAH, rescue, telecom, and wind energy. Certified PPE supply for safe operations at height.</p>
+          <span class="service-more">Learn More →</span>
+        </div>
+      </div>
+      <div class="service-card reveal" onclick="openModal('wind-turbine')" role="button" tabindex="0">
+        <div class="service-photo" style="background-image:url('/img/0ce37cb33507.jpg')"></div>
+        <div class="service-body">
+          <div class="service-tag">Wind Energy</div>
+          <div class="service-title">Wind Turbine Services</div>
+          <p class="service-desc">Rope access inspection, blade repair, and maintenance for wind turbines and renewable energy assets.</p>
+          <span class="service-more">Learn More →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="gallery" id="gallery" style="display:none">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Our Work</div>
+      <h2 class="section-title">Project Gallery</h2>
+      <p class="section-lead">Real projects across the Philippines and beyond. Our technicians working safely at height every day.</p>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</section>
+
+<section class="partners" id="partners">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Accreditations, Partners &amp; Certifications</div>
+      <h2 class="section-title">Trusted By Industry Leaders</h2>
+      <p class="section-lead">Strategic partnerships with globally recognised organisations committed to rope access safety, innovation, and excellence.</p>
+    </div>
+    <div class="partners-grid">
+      <div class="partner-card reveal"><img src="/img/e5400f46df84.jpg" alt="HRWPA" style="width:80px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">HRWPA</div><div class="partner-type">Accreditation Body</div></div>
+      <div class="partner-card reveal" style="background:#fff"><img src="/img/2ba2e3092947.png" alt="SKYLOTEC" style="width:130px;height:60px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name" style="color:#222">SKYLOTEC</div><div class="partner-type">Equipment Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/c10dc6c9ea4f.png" alt="GREENTECK" style="width:80px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">GREENTECK</div><div class="partner-type">Waterproofing Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/65c0abc206b1.png" alt="PROFEC" style="width:auto;max-width:150px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">PROFEC</div><div class="partner-type">Wind Energy Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/361a036c26bc.png" alt="FALLPROTEC" style="width:auto;max-width:150px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">FALLPROTEC</div><div class="partner-type">Safety Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/irmap-logo.png" alt="IRMAP – Integrated Risk Management Association of the Philippines" style="width:84px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">IRMAP</div><div class="partner-type">Industry Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/a189a2d9bfa1.png" alt="KSTRONG" style="width:auto;max-width:150px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">KSTRONG</div><div class="partner-type">Equipment Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/e4d734b5ae00.svg" alt="JIALONG" style="width:auto;max-width:150px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">JIALONG</div><div class="partner-type">Supply Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/c72e747264d8.png" alt="HARKEN" style="width:auto;max-width:150px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">HARKEN</div><div class="partner-type">Equipment Partner</div></div>
+      <div class="partner-card reveal"><img src="/img/2fe2e35babde.png" alt="COUSIN" style="width:auto;max-width:150px;height:80px;object-fit:contain;margin:0 auto 8px;display:block"><div class="partner-name">COUSIN</div><div class="partner-type">Rope Partner</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials" id="testimonials" style="background:var(--bg);padding-block:80px">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Client Testimonials</div>
+      <h2 class="section-title">What Our Clients Say</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:40px">
+      <div class="reveal" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative">
+        <div style="font-size:36px;color:var(--accent);opacity:0.4;position:absolute;top:16px;right:20px">&ldquo;</div>
+        <p style="color:var(--fg2);font-size:14px;line-height:1.7;margin-bottom:20px">&ldquo;Working with NextEdge Access Solutions has been a positive and reliable experience. The company consistently delivers excellent product and service quality, dependable delivery and collection, prompt responses to urgent requirements, and reliable after-sales support.&rdquo;</p>
+        <div style="font-weight:700;color:#fff;font-size:14px">Jesus Torrelino</div>
+        <div style="color:var(--accent);font-size:12px;margin-top:2px">Client</div>
+      </div>
+      <div class="reveal" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative">
+        <div style="font-size:36px;color:var(--accent);opacity:0.4;position:absolute;top:16px;right:20px">&ldquo;</div>
+        <p style="color:var(--fg2);font-size:14px;line-height:1.7;margin-bottom:20px">&ldquo;We needed urgent facade repairs on a high-rise building, and NEAS responded quickly with a cost-effective rope access solution. Their expertise saved us time and money compared to traditional scaffolding.&rdquo;</p>
+        <div style="font-weight:700;color:#fff;font-size:14px">Engr. Manuel Marfil</div>
+        <div style="color:var(--accent);font-size:12px;margin-top:2px">Facade Project Client</div>
+      </div>
+      <div class="reveal" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative">
+        <div style="font-size:36px;color:var(--accent);opacity:0.4;position:absolute;top:16px;right:20px">&ldquo;</div>
+        <p style="color:var(--fg2);font-size:14px;line-height:1.7;margin-bottom:20px">&ldquo;NEAS delivered exceptional service on our LED Installation project. Their team was professional, efficient, and completed the work ahead of schedule without compromising safety. Highly recommended!&rdquo;</p>
+        <div style="font-weight:700;color:#fff;font-size:14px">Edria Villanueva</div>
+        <div style="color:var(--accent);font-size:12px;margin-top:2px">LED Installation Client</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="team" id="team">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Our People</div>
+      <h2 class="section-title">Meet the Team</h2>
+    </div>
+    <div class="team-grid">
+      <div class="team-card reveal"><div class="team-avatar">WC</div><div class="team-name">William Castaneda</div><div class="team-role">General Manager</div></div>
+      <div class="team-card reveal"><div class="team-avatar">JG</div><div class="team-name">Junrey Granaderos</div><div class="team-role">Business Dev. · Sales &amp; Marketing Manager</div></div>
+      <div class="team-card reveal"><div class="team-avatar">JR</div><div class="team-name">Julius Romero</div><div class="team-role">Sales Consultant &amp; HSE Manager</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="store" id="store">
+  <div class="container">
+    <button type="button" id="store-close" class="store-close">✕ Close store</button>
+    <div class="section-eyebrow">Online Store · PPE &amp; Rope Access Equipment</div>
+    <h2 class="section-title">Shop Certified Height-Safety Gear</h2>
+    <p class="store-sub">Genuine Skylotec, Singing Rock and Trestec equipment. Order online and pay by bank transfer. We confirm stock and delivery once payment is received.</p>
+    <div class="store-bar">
+      <input type="search" id="store-q" placeholder="Search item or code…" aria-label="Search products">
+      <div class="store-cats" id="store-cats"></div>
+    </div>
+    <div class="store-admin" id="store-admin" hidden>
+      <strong>Admin · price editing</strong>
+      <label>Markup on dealer price <input type="number" id="store-markup" min="0" max="500" step="1"> %</label>
+      <span class="store-admin-note">Use “Edit full price list” to set any item’s own price. Leave it blank to use dealer + markup.</span>
+      <button type="button" id="store-pricelist" class="sa-btn">Edit full price list</button><span id="store-admin-status"></span>
+    </div>
+    <div class="store-grid" id="store-grid"></div>
+    <div class="store-quote" id="store-quote" hidden>
+      <div>🛒 <strong id="sq-count">0</strong> item(s) · <strong id="sq-total">₱0</strong></div>
+      <div class="sq-actions"><button type="button" id="sq-clear" class="sq-ghost">Clear</button><button type="button" id="sq-send">Checkout</button></div>
+    </div>
+    <div class="store-modal" id="store-modal" hidden role="dialog" aria-modal="true"><div class="store-modal-box" id="store-modal-body"></div></div>
+    <p class="store-note">Prices in PHP, VAT inclusive where applicable, subject to stock confirmation.</p>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Get In Touch</div>
+      <h2 class="section-title">Contact Us</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-details reveal">
+        <div class="contact-item"><div class="contact-icon">📞</div><div><div class="contact-lbl">Phone / WhatsApp / Viber</div><div class="contact-val"><div class="em-list"><div class="em-row"><span class="em-num">+63 991 426 5886</span><a class="em-btn em-call" href="tel:+639914265886" aria-label="Call +63 991 426 5886">📞 Call</a><a class="em-btn em-wa" href="https://wa.me/639914265886" target="_blank" rel="noopener" aria-label="WhatsApp +63 991 426 5886">WhatsApp</a><a class="em-btn em-vb" href="viber://chat?number=%2B639914265886" aria-label="Viber +63 991 426 5886">Viber</a></div><div class="em-row"><span class="em-num">+63 995 770 8144</span><a class="em-btn em-call" href="tel:+639957708144" aria-label="Call +63 995 770 8144">📞 Call</a><a class="em-btn em-wa" href="https://wa.me/639957708144" target="_blank" rel="noopener" aria-label="WhatsApp +63 995 770 8144">WhatsApp</a><a class="em-btn em-vb" href="viber://chat?number=%2B639957708144" aria-label="Viber +63 995 770 8144">Viber</a></div></div></div></div></div>
+        <div class="contact-item"><div class="contact-icon">✉️</div><div><div class="contact-lbl">Email</div><div class="contact-val">info.nextedgeaccesssolutions@gmail.com<br>sales@nextedge-access-solutions.com</div></div></div>
+        <div class="contact-item"><div class="contact-icon">🌐</div><div><div class="contact-lbl">Website</div><div class="contact-val">www.nextedge-access-solutions.com</div></div></div>
+        <div class="contact-item"><div class="contact-icon">📍</div><div><div class="contact-lbl">Address</div><div class="contact-val">B15 Lot 6 Marilao Grand Villas<br>Brgy. Loma de Gato, Marilao, Bulacan<br>Philippines</div></div></div>
+        <div class="contact-item"><div class="contact-icon">👤</div><div><div class="contact-lbl">Contact Person</div><div class="contact-val">Junrey Granaderos<br>Business Dev. · Sales &amp; Marketing Manager</div></div></div>
+      </div>
+      <div class="contact-form reveal">
+        <form id="contact-form" onsubmit="submitForm(event)">
+          <div class="form-row">
+            <div class="form-field"><label>Full Name</label><input type="text" placeholder="Juan dela Cruz" required></div>
+            <div class="form-field"><label>Company</label><input type="text" placeholder="Your Company"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>Email</label><input type="email" placeholder="you@company.com" required></div>
+            <div class="form-field"><label>Phone</label><input type="tel" placeholder="+63 9XX XXX XXXX"></div>
+          </div>
+          <div class="form-field">
+            <label>Service Required</label>
+            <select>
+              <option value="">Select a service…</option>
+              <option>Rope Access &amp; Facade Works</option>
+              <option>NDT &amp; Industrial Inspection</option>
+              <option>Blasting, Painting &amp; Coatings</option>
+              <option>Met Mast &amp; Telecom Tower Services</option>
+              <option>Wind Turbine Services</option>
+              <option>Training, Consultancy &amp; PPE Supply</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Message</label><textarea placeholder="Describe your project or inquiry…" required></textarea></div>
+          <button type="submit" class="form-submit">Send Inquiry</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- PHOTO CAROUSEL -->
+<div class="photo-carousel">
+  <div class="carousel-track" id="carouselTrack"></div>
+</div>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/img/83c162b165ae.png" alt="NEAS">
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:8px">NEXTEDGE ACCESS SOLUTIONS</div>
+        <p>IRATA-certified rope access specialists serving Asia since 2025. Safe · Reliable · Professional.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col"><h4>Services</h4><ul><li><a href="#services">Rope Access &amp; Facade</a></li><li><a href="#services">NDT Inspection</a></li><li><a href="#services">Blasting &amp; Painting</a></li><li><a href="#services">Wind &amp; Met Mast</a></li><li><a href="#services">Telecom Tower</a></li><li><a href="#services">Training &amp; PPE</a></li><li><a href="#services">Wind Turbine</a></li></ul></div>
+        <div class="footer-col"><h4>Company</h4><ul><li><a href="#about">About Us</a></li><li><a href="#partners">Partners</a></li><li><a href="#team">Team</a></li><li><a href="#contact">Contact</a></li></ul></div>
+      </div>
+      <div class="footer-emergency">
+        <p>🚨 24/7 Emergency</p>
+        <div class="em-list"><div class="em-row"><span class="em-num">+63 991 426 5886</span><a class="em-btn em-call" href="tel:+639914265886" aria-label="Call +63 991 426 5886">📞 Call</a><a class="em-btn em-wa" href="https://wa.me/639914265886" target="_blank" rel="noopener" aria-label="WhatsApp +63 991 426 5886">WhatsApp</a><a class="em-btn em-vb" href="viber://chat?number=%2B639914265886" aria-label="Viber +63 991 426 5886">Viber</a></div><div class="em-row"><span class="em-num">+63 995 770 8144</span><a class="em-btn em-call" href="tel:+639957708144" aria-label="Call +63 995 770 8144">📞 Call</a><a class="em-btn em-wa" href="https://wa.me/639957708144" target="_blank" rel="noopener" aria-label="WhatsApp +63 995 770 8144">WhatsApp</a><a class="em-btn em-vb" href="viber://chat?number=%2B639957708144" aria-label="Viber +63 995 770 8144">Viber</a></div></div>
+        <div style="font-size:11px;color:var(--fg3);margin-top:6px">Tap to call or message — available 24/7</div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 NextEdge Access Solutions (NEAS) OPC. All rights reserved. · <a href="/privacy-policy">Privacy Policy</a> · <a href="#admin-login" id="admin-login-link" class="admin-login-link">Admin log in</a></span>
+      <span>info.nextedgeaccesssolutions@gmail.com</span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- SIDE PANEL -->
+<div class="side-panel">
+  <a class="side-hotline" href="#contact" title="Emergency Hotline">Emergency Hotline</a>
+  <div class="side-socials">
+    <a class="side-social" href="https://www.facebook.com/NextEdgeAccessSolutionss" target="_blank" rel="noopener" title="Facebook">
+      <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+    </a>
+    <a class="side-social" href="https://www.linkedin.com/company/nextedge-access-solutions-neas" target="_blank" rel="noopener" title="LinkedIn">
+      <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+    </a>
+    <a class="side-social" href="https://www.youtube.com/@NextEdgeAccessSolutions" target="_blank" rel="noopener" title="YouTube">
+      <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75,15.02 15.5,12 9.75,8.98 9.75,15.02" fill="#1e6fbe"/></svg>
+    </a>
+    <a class="side-social" href="https://www.instagram.com/nextedgeaccesssolutions" target="_blank" rel="noopener" title="Instagram">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" fill="#1e6fbe"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a><a class="side-social" href="https://www.tiktok.com/@nextedgeaccesssolutions" target="_blank" rel="noopener" title="TikTok"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.22 8.22 0 0 0 4.8 1.54V6.78a4.85 4.85 0 0 1-1.03-.09z"/></svg></a>
+  </div>
+</div>
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-hero" id="modal-hero"></div>
+    <div class="modal-body">
+      <div class="modal-tag" id="modal-tag"></div>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-features" id="modal-features"></div>
+      <div class="modal-cta">
+        <button type="button" class="modal-quote" onclick="quoteFromModal()">Request a Quote</button>
+        <div class="modal-contact">
+          <a href="tel:+639914265886">📞 +63 991 426 5886</a>
+          <a href="tel:+639957708144">📞 +63 995 770 8144</a>
+          <a href="mailto:info.nextedgeaccesssolutions@gmail.com">✉️ info.nextedgeaccesssolutions@gmail.com</a>
+          <a href="mailto:sales@nextedge-access-solutions.com">✉️ sales@nextedge-access-solutions.com</a>
+          <span>💬 WhatsApp · Viber · Call — 24/7 emergency line</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GALLERY_DATA = [{"src":"/img/5dda560dd098.jpg","label":"NEAS Photo 1"},{"src":"/img/8cb6cfbb3fa2.jpg","label":"NEAS Photo 2"},{"src":"/img/6961c4c8a095.jpg","label":"NEAS Photo 3"},{"src":"/img/a1b519cad9f4.jpg","label":"NEAS Photo 4"},{"src":"/img/fa09b21c4c41.jpg","label":"NEAS Photo 5"},{"src":"/img/13ba6f6eb4e9.jpg","label":"NEAS Photo 6"},{"src":"/img/c566a6ad994a.jpg","label":"NEAS Photo 7"},{"src":"/img/dd5b246ebf3f.jpg","label":"NEAS Photo 8"},{"src":"/img/8893478b3efc.jpg","label":"NEAS Photo 9"},{"src":"/img/db4b7667f3c9.jpg","label":"NEAS Photo 10"},{"src":"/img/a7330f027b26.jpg","label":"NEAS Photo 11"},{"src":"/img/bf05bd806f51.jpg","label":"NEAS Photo 12"}];
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const grid=document.getElementById('galleryGrid');
+  GALLERY_DATA.forEach(({src,label})=>{
+    const d=document.createElement('div');
+    d.className='gallery-item reveal';
+    d.innerHTML=`<img src="${src}" alt="NEAS – ${label}" loading="lazy"><div class="gallery-caption">${label}</div>`;
+    grid.appendChild(d);
+  });
+  const partners=['IRATA Certified','HRWPA Member','SKYLOTEC Partner','SEC Registered','GREENTECK Partner','OPITO Certified','PROFEC Partner','BIR Registered','FALLPROTEC Partner','BOSIET Trained','IRMAP Partner','IOSH Member','KSTRONG Partner','JIALONG Partner','HARKEN Partner','COUSIN Ropes'];
+  const track=document.getElementById('tickerTrack');
+  [...partners,...partners].forEach(p=>{const s=document.createElement('span');s.className='ticker-item';s.textContent=p;track.appendChild(s);});
+
+  // Build carousel from gallery photos
+  const carouselTrack = document.getElementById('carouselTrack');
+  if (carouselTrack) {
+    const slides = [...GALLERY_DATA, ...GALLERY_DATA]; // duplicate for infinite loop
+    slides.forEach(({src, label}) => {
+      const div = document.createElement('div');
+      div.className = 'carousel-slide';
+      div.innerHTML = `<img src="${src}" alt="${label}" loading="lazy"><div class="carousel-smoke"></div>`;
+      carouselTrack.appendChild(div);
+    });
+  }
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+});
+
+const SERVICES={
+  'rope-access':{tag:'Rope Access',title:'Rope Access & Facade Works',desc:'IRATA-certified technicians perform inspection, maintenance, cleaning, and repair at height. Faster and more cost-effective than traditional scaffolding — with zero disruption to operations.',feats:['Facade cleaning & inspection','Window cleaning, buffing & tinting','Sealant & waterproofing application','ACP & curtain wall installation','Post-construction cleaning','Anchor bolt & lifeline installation','AAMA 501.2 leak testing','Standby rescue teams']},
+  'ndt-inspection':{tag:'Inspection',title:'NDT & Industrial Inspection',desc:'Non-destructive testing services via rope access for offshore, onshore, marine, and industrial assets. Certified NDT expertise combined with rope access efficiency.',feats:['Visual, UT & magnetic particle testing','Pipe inspection & thickness measurement','Offshore & marine hull inspection','Weld inspection & quality assurance','Structural condition assessment','Corrosion mapping','Third-party inspection support','OPITO-certified inspection teams']},
+  'coatings':{tag:'Coatings',title:'Blasting, Painting & Coatings',desc:'Comprehensive surface preparation, protective coating, and painting services for industrial structures, offshore platforms, and commercial buildings.',feats:['Abrasive blasting & surface prep','Industrial & marine painting','Protective anti-corrosion coatings','Repainting & touch-up works','GFRC repair & painting','I-beam cleaning & repainting','Offshore structure coating','Compliance with international paint specs']},
+  
+  'metmast-telecom':{tag:'Met Mast & Telecom',title:'Met Mast & Telecom Tower Services',desc:'NEAS delivers specialist rope access for Met Mast projects and telecom infrastructure across the Philippines — from civil works and erection to commissioning and annual maintenance.',feats:['Met Mast civil works & erection','Lidar supply & installation','Annual & quarterly Met Mast maintenance','Cell site inspection & antenna install','Telecom tower erection & commissioning','Decommissioning services','Cable management & routing','Site safety assessment']},
+  'wind-turbine':{tag:'Wind Energy',title:'Wind Turbine Services',desc:'NEAS provides specialist rope access services for wind turbines across the Philippines — from blade inspection and repair to tower maintenance and decommissioning.',feats:['Blade inspection & crack detection','Blade leading-edge repair','Lightning protection system checks','Tower internal & external inspection','Nacelle & hub access works','WTG decommissioning support','Annual maintenance contracts','Safety system installation']},'training':{tag:'Training & PPE',title:'Training, Consultancy & PPE Supply',desc:'Professional training courses, safety consultancy, and certified PPE supply to ensure your teams work safely and in full compliance with international standards.',feats:['Rope access (IRATA protocol)','Working at Height (WAH)','Rope rescue & confined space','Telecom & Met Mast tower courses','Wind turbine safety training','PPE inspection & certification','Safety consultancy & auditing','Premium certified PPE supply']}
+};
+
+function openModal(id){
+  const s=SERVICES[id];if(!s)return;
+  document.getElementById('modal-tag').textContent=s.tag;
+  document.getElementById('modal-title').textContent=s.title;
+  document.getElementById('modal-desc').textContent=s.desc;
+  document.getElementById('modal-features').innerHTML=s.feats.map(f=>`<div class="modal-feature">${f}</div>`).join('');
+  const card=document.querySelector(`[onclick="openModal('${id}')"] .service-photo`);
+  const bg=card?card.style.backgroundImage:'';
+  document.getElementById('modal-hero').style.backgroundImage=bg||'linear-gradient(135deg,#0d1117,#1c2333)';
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal')&&!e.target.classList.contains('modal-close'))return;
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal({target:document.getElementById('modal')});});
+function submitForm(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('.form-submit');
+  btn.textContent='✓ Inquiry Sent! We\'ll be in touch shortly.';
+  btn.style.background='#16a34a';
+  btn.disabled=true;
+}
+</script>
+
+
+
+
+
+
+
+
+
+<script>
+(function(){
+var s=[].slice.call(document.querySelectorAll('.hero-slide')),lab=document.querySelector('.hero-vid-label'),i=-1;
+if(!s.length)return;
+function next(){
+  if(i>=0)s[i].classList.remove('on');
+  i=(i+1)%(s.length+1);
+  if(i===s.length){lab.textContent='High-Rise Facades';i=-1;setTimeout(next,6000);return;}
+  s[i].classList.add('on');lab.textContent=s[i].dataset.label;lab.classList.add('on');
+  setTimeout(next,6000);
+}
+lab.textContent='High-Rise Facades';lab.classList.add('on');
+setTimeout(next,5000);
+})();
+</script>
+
+
+
+
+
+<script>
+function quoteFromModal(){
+  var t=document.getElementById('modal-title').textContent.trim();
+  document.getElementById('modal').classList.remove('open');document.body.style.overflow='';
+  var sel=document.querySelector('#contact-form select')||document.querySelector('#contact select');
+  if(sel){for(var o of sel.options){if(o.text.trim()===t){sel.value=o.value||o.text;break;}}}
+  var msg=document.querySelector('#contact textarea');
+  if(msg&&!msg.value)msg.value='Hi NEAS, I would like a quotation for '+t+'.';
+  document.getElementById('contact').scrollIntoView({behavior:'smooth'});
+}
+</script>
+
+
+
+<script>
+(function(){
+var c=document.querySelector('.hero-content');if(!c)return;
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+var hover=false;
+c.addEventListener('mouseenter',function(){hover=true;c.classList.remove('is-hidden')});
+c.addEventListener('mouseleave',function(){hover=false});
+c.addEventListener('focusin',function(){hover=true;c.classList.remove('is-hidden')});
+c.addEventListener('focusout',function(){hover=false});
+setInterval(function(){ if(hover){c.classList.remove('is-hidden');return;} c.classList.toggle('is-hidden'); },5000);
+})();
+</script>
+
+
+
+
+
+<script id="store-js">
+(function(){
+var CATALOG=[{"id": "p001", "cat": "Helmets", "code": "6X945", "name": "Work Shell Helmet #5 - Black", "dealer": 3975.0}, {"id": "p002", "cat": "Helmets", "code": "6X945", "name": "Work Shell Helmet #13 - Yellow", "dealer": 3975.0}, {"id": "p003", "cat": "Helmets", "code": "6X945", "name": "Work Shell Helmet #7 - White", "dealer": 3975.0}, {"id": "p004", "cat": "Helmets", "code": "6X92901", "name": "Orange Aries Air", "dealer": 5260.0}, {"id": "p005", "cat": "Helmets", "code": "6X92902", "name": "Red Aries Air", "dealer": 5260.0}, {"id": "p006", "cat": "Helmets", "code": "6X92913", "name": "Yellow Hi Viz Aries Air", "dealer": 5695.0}, {"id": "p007", "cat": "Helmets", "code": "6X9307", "name": "WHITE ARIES", "dealer": 5260.0}, {"id": "p008", "cat": "Helmets", "code": "6X9301A", "name": "Smoked Visor A-F", "dealer": 3735.0}, {"id": "p009", "cat": "Harnesses", "code": "7H178BC", "name": "S-M Gryphon Ascender Full Body Harness", "dealer": 32850.0}, {"id": "p010", "cat": "Harnesses", "code": "7H178BC", "name": "M-L Gryphon Ascender Full Body Harness", "dealer": 32850.0}, {"id": "p011", "cat": "Harnesses", "code": "6V522", "name": "Hook Rest", "dealer": 690.0}, {"id": "p012", "cat": "Ascenders", "code": "2D639DJ", "name": "Quick Up DX Right Hand Ascender", "dealer": 4070.0}, {"id": "p013", "cat": "Ascenders", "code": "2D639SJ", "name": "Quick Up DX Left Hand Ascender", "dealer": 4100.0}, {"id": "p014", "cat": "Ascenders", "code": "7W124", "name": "Foot Loop", "dealer": 1800.0}, {"id": "p015", "cat": "Descenders", "code": "A-050", "name": "SIRIUS", "dealer": 14950.0}, {"id": "p016", "cat": "Descenders", "code": "IN401", "name": "Gray Clutch", "dealer": 61670.0}, {"id": "p017", "cat": "Ropes & Cowstails", "code": "", "name": "45m - 10.1mm Light Green with Dark Green Dot Strike Dynamic Rope", "dealer": 7580.0}, {"id": "p018", "cat": "Ropes & Cowstails", "code": "", "name": "45m - 10.1mm Light Blue with Navy Blue Dot Strike Dynamic Rope", "dealer": 7580.0}, {"id": "p019", "cat": "Ropes & Cowstails", "code": "", "name": "55m - 10.1mm Light Green with Dark Green Dot Strike Dynamic Rope", "dealer": 9260.0}, {"id": "p020", "cat": "Ropes & Cowstails", "code": "", "name": "55m - 10.1mm Light Blue with Navy Blue Dot Strike Dynamic Rope", "dealer": 9260.0}, {"id": "p021", "cat": "Ropes & Cowstails", "code": "7L930", "name": "Tuner I", "dealer": 4240.0}, {"id": "p022", "cat": "Carabiners", "code": "2C46300XTB", "name": "PILLAR – Alloy Screw Gate Oval Carabiner", "dealer": 825.0}, {"id": "p023", "cat": "Carabiners", "code": "3C4630A", "name": "PILLAR - Steel Oval Screw Gate Carabiner", "dealer": 665.0}, {"id": "p024", "cat": "Carabiners", "code": "3C4460A", "name": "PILLAR - Steel Triple Action Twist Lock Oval Carabiner", "dealer": 1025.0}, {"id": "p025", "cat": "Carabiners", "code": "2C47600XTB", "name": "D-SHAPE – Alloy Screw Gate Carabiner", "dealer": 785.0}, {"id": "p026", "cat": "Carabiners", "code": "2C47600XTB", "name": "D-SHAPE – Alloy Screw Gate Carabiners", "dealer": 825.0}, {"id": "p027", "cat": "Carabiners", "code": "2C47700XTB", "name": "D-SHAPE - Alloy Triple Action Twist Lock Carabiner", "dealer": 1230.0}, {"id": "p028", "cat": "Carabiners", "code": "3C4760A", "name": "D-SHAPE - Steel Screw Gate Carabiner", "dealer": 665.0}, {"id": "p029", "cat": "Carabiners", "code": "3C4770A", "name": "D-SHAPE - Steel Triple Action Twist Lock Carabiner", "dealer": 1060.0}, {"id": "p030", "cat": "Carabiners", "code": "2C45500XTB", "name": "LARGE – Alloy Screw Gate Carabiner", "dealer": 975.0}, {"id": "p031", "cat": "Carabiners", "code": "7W099022", "name": "LARGE - Steel Triple Action Twist Lock Carabiner", "dealer": 1325.0}, {"id": "p032", "cat": "Carabiners", "code": "4Q82207", "name": "Q-link S-Steel D08 Stainless Steel Carabiner", "dealer": 1235.0}, {"id": "p033", "cat": "Carabiners", "code": "3C4550A", "name": "LARGE - Steel Screw Gate Carabiner", "dealer": 970.0}, {"id": "p034", "cat": "Carabiners", "code": "2C46500XTB", "name": "LARGE - Alloy Triple Action Lock Carabiner", "dealer": 1380.0}, {"id": "p035", "cat": "Carabiners", "code": "2C50200SHF", "name": "OVX Alloy Triple Action Oval Carabineer", "dealer": 1565.0}, {"id": "p036", "cat": "Back-up Devices", "code": "2F714", "name": "Easy Speed", "dealer": 7455.0}, {"id": "p037", "cat": "Back-up Devices", "code": "2F720", "name": "Easy Access", "dealer": 6880.0}, {"id": "p038", "cat": "Back-up Devices", "code": "7W924020", "name": "Link 20", "dealer": 1680.0}, {"id": "p039", "cat": "Back-up Devices", "code": "7W924040", "name": "Link 40", "dealer": 1935.0}, {"id": "p040", "cat": "Bags", "code": "6X96140", "name": "40L Utility Backpack", "dealer": 6730.0}, {"id": "p041", "cat": "Bags", "code": "7X96970", "name": "70L Zenith", "dealer": 12740.0}, {"id": "p042", "cat": "Anchors & Slings", "code": "7W130150", "name": "150cm Fast Ankor", "dealer": 2040.0}, {"id": "p043", "cat": "Anchors & Slings", "code": "7W131100", "name": "100cm Web Ankor", "dealer": 1660.0}, {"id": "p044", "cat": "Anchors & Slings", "code": "7W131160", "name": "160cm Web Ankor", "dealer": 1920.0}, {"id": "p045", "cat": "Anchors & Slings", "code": "3A164100", "name": "100cm Steel Ankor", "dealer": 2110.0}, {"id": "p046", "cat": "Anchors & Slings", "code": "3A164150", "name": "150cm Steel Ankor", "dealer": 2385.0}, {"id": "p047", "cat": "Anchors & Slings", "code": "3A164200", "name": "200cm Steel Ankor", "dealer": 2630.0}, {"id": "p048", "cat": "Anchors & Slings", "code": "CASPE020LP004", "name": "60cm – 19.0mm Orange Webbing Loops", "dealer": 675.0}, {"id": "p049", "cat": "Anchors & Slings", "code": "CASPE020LP002", "name": "80cm – 19.0mm Blue Webbing Loops", "dealer": 835.0}, {"id": "p050", "cat": "Anchors & Slings", "code": "CASPE020LP001", "name": "120cm – 19.0mm Yellow Webbing Loops", "dealer": 980.0}, {"id": "p051", "cat": "Lanyards", "code": "7W920115", "name": "115cm FLEX ABS 140 COMBI Y-S", "dealer": 10395.0}, {"id": "p052", "cat": "Lanyards", "code": "7L92802", "name": "200cm Finch + Shelter", "dealer": 9540.0}, {"id": "p053", "cat": "Lanyards", "code": "7L91502", "name": "200cm Finch with BIG double gate connector ref. 2C35300V1A", "dealer": 7620.0}, {"id": "p054", "cat": "Lanyards", "code": "7L91503", "name": "300cm Finch with BIG double gate connector ref. 2C35300V1A", "dealer": 7830.0}, {"id": "p055", "cat": "Fall Arrest", "code": "4F716K", "name": "SKC EVO", "dealer": 16360.0}, {"id": "p056", "cat": "Harnesses", "code": "7H144DEO1", "name": "L-XL Work Tec", "dealer": 6165.0}, {"id": "p057", "cat": "Harnesses", "code": "7H165BC01", "name": "S-M Work Tec 140", "dealer": 14890.0}, {"id": "p058", "cat": "Pulleys", "code": "2P662", "name": "Orbiter T", "dealer": 5685.0}, {"id": "p059", "cat": "Pulleys", "code": "2P667", "name": "Orbiter H", "dealer": 5260.0}, {"id": "p060", "cat": "Pulleys", "code": "2K11705", "name": "5m Up You Go", "dealer": 15975.0}, {"id": "p061", "cat": "Pulleys", "code": "2P673", "name": "Fox", "dealer": 7275.0}, {"id": "p062", "cat": "Rope Protection", "code": "3V795X3", "name": "Roller - Metal Rope Shield", "dealer": 5830.0}, {"id": "p063", "cat": "Rope Protection", "code": "6V811", "name": "Rope Shield", "dealer": 825.0}, {"id": "p064", "cat": "Accessories", "code": "7W099022", "name": "22cm Extender Nylon", "dealer": 235.0}, {"id": "p065", "cat": "Accessories", "code": "7W099022", "name": "35cm White/Red Extender DY Pro", "dealer": 500.0}, {"id": "p066", "cat": "Accessories", "code": "7W099022", "name": "ADV Park I Plus (40cm)", "dealer": 785.0}, {"id": "p067", "cat": "Accessories", "code": "7W099022", "name": "150cm Dynamix", "dealer": 1360.0}, {"id": "p068", "cat": "Accessories", "code": "7H158AF", "name": "Seat Tec - Working Positioning", "dealer": 9380.0}, {"id": "p069", "cat": "Accessories", "code": "CASPE020LP004", "name": "Trestec 60cm-19.0mm Orange Wedding Loops", "dealer": 645.0}, {"id": "p070", "cat": "Accessories", "code": "", "name": "OBX TG", "dealer": 1400.0}, {"id": "p071", "cat": "Accessories", "code": "", "name": "SINGING ROCK Expert 3D Speed", "dealer": 25000.0}, {"id": "p072", "cat": "Accessories", "code": "", "name": "SKYLOTEC Sirius Net price", "dealer": 13000.0}, {"id": "p073", "cat": "Accessories", "code": "", "name": "SINGING ROCK Locker", "dealer": 7500.0}, {"id": "p074", "cat": "Carabiners", "code": "", "name": "SINGING ROCK Steel Oval Carabiner TL", "dealer": 1400.0}, {"id": "p075", "cat": "Carabiners", "code": "K0122EE06 - gold", "name": "SINGING ROCK Oxy Alloy Carabiner SG", "dealer": 1100.0}, {"id": "p076", "cat": "Pulleys", "code": "", "name": "SINGING ROCK Extra Pulley Plus", "dealer": 3300.0}, {"id": "p077", "cat": "Accessories", "code": "", "name": "SINGING ROCK Webbing Loop 80cm", "dealer": 650.0}, {"id": "p078", "cat": "Carabiners", "code": "", "name": "SINGING ROCK Oxy Alloy Carabiner TL", "dealer": 1600.0}, {"id": "p079", "cat": "Ascenders", "code": "", "name": "SINGING ROCK Hand Ascender Right", "dealer": 4000.0}, {"id": "p080", "cat": "Ascenders", "code": "", "name": "SINGING ROCK Hand Ascender Left", "dealer": 4000.0}, {"id": "p081", "cat": "Ascenders", "code": "2D663DJ", "name": "Quick Roll Right Hand Ascender With Integrated Pulley", "dealer": 8165.0}, {"id": "p082", "cat": "Ropes & Cowstails", "code": "", "name": "Dynamic Rope Single rope with a 10.4 mm diameter, designed for indoor climbing, featuring the LongLife process.", "dealer": 7500.0}, {"id": "p083", "cat": "Ropes & Cowstails", "code": "L0270WX", "name": "Contra 11 Kernmantle Rope 11mm X 200m", "dealer": 29250.0}, {"id": "p084", "cat": "Ropes & Cowstails", "code": "", "name": "45m - 10.1 mm Light Green with Dark Green Dot Strike Dynamic Rope", "dealer": 7580.0}, {"id": "p085", "cat": "Ropes & Cowstails", "code": "CT900103B034", "name": "120m - 30mm Yellow Multi Accessory Cord", "dealer": 3755.0}, {"id": "p086", "cat": "Ropes & Cowstails", "code": "CT900103B038", "name": "120m • 30mm Red Multi Accessory Cord", "dealer": 3755.0}, {"id": "p087", "cat": "Accessories", "code": "CT900103B037", "name": "120m - 3.0mm Neon Green Multi Accesso", "dealer": 3755.0}, {"id": "p088", "cat": "Ropes & Cowstails", "code": "CT900103B033", "name": "120m - 3.0mm Blue Multi Accessory Cord", "dealer": 3755.0}, {"id": "p089", "cat": "Ropes & Cowstails", "code": "CT900103B036", "name": "120m - 3.0mm Pink Multi Accessory Cord", "dealer": 3755.0}, {"id": "p090", "cat": "Accessories", "code": "CT900003B107", "name": "120m • 3. Omm Black Multi Accesso", "dealer": 3755.0}, {"id": "p091", "cat": "Accessories", "code": "CT900103B035", "name": "120m - 3, Omm Black Multi Accesso", "dealer": 3755.0}, {"id": "p092", "cat": "Ropes & Cowstails", "code": "CT900103B040", "name": "120m • 3.0mm Black Accessory Cord", "dealer": 3755.0}, {"id": "p093", "cat": "Gloves", "code": "7X9840A", "name": "Medium Progrip Full-Finger Gloves", "dealer": 2640.0}, {"id": "p094", "cat": "Gloves", "code": "7X9840B", "name": "Large Progrip Full-Finger Gloves", "dealer": 2640.0}, {"id": "p095", "cat": "Gloves", "code": "7X9840C", "name": "XL Progrip Full-Finger Gloves", "dealer": 2640.0}, {"id": "p096", "cat": "Gloves", "code": "7X98408", "name": "Gloves 2XL Progrip Full-Finger", "dealer": 2640.0}, {"id": "p097", "cat": "Bags", "code": "", "name": "Capture Tool Bucket", "dealer": 4500.0}, {"id": "p098", "cat": "Bags", "code": "", "name": "Capture Tool Bucket 1000mm Height", "dealer": 5500.0}, {"id": "p099", "cat": "Ropes & Cowstails", "code": "", "name": "Rope Bag Length :60cm X Width:43cm", "dealer": 6730.0}], DEFAULT_MARKUP=20;
+var BANK={name:'NextEdge Access Solutions. NEAS OPC',acct:'0000078251151',swift:'SETCPHMMXXX',bank:'Security Bank Corporation'};
+var ORDER_EMAIL='sales@nextedge-access-solutions.com';
+var markup=DEFAULT_MARKUP, overrides={}, admin=false, db=null, cat='All', q='', cart={}, qty={}, wish={};
+try{wish=JSON.parse(localStorage.getItem('neasWish')||'{}')}catch(e){}
+var $=function(id){return document.getElementById(id)};
+var peso=function(n){return '₱'+Math.round(n).toLocaleString('en-PH')};
+var esc=function(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML};
+function price(p){if(p.live!=null)return p.live;var o=overrides[p.id];return (o!=null&&o!=='')?Number(o):Math.ceil(p.dealer*(1+markup/100)/5)*5;}
+function byId(id){return CATALOG.find(function(x){return x.id===id})}
+var cats=['All','♥ Wishlist'].concat(CATALOG.map(function(p){return p.cat}).filter(function(c,i,a){return a.indexOf(c)===i}));
+function renderCats(){$('store-cats').innerHTML='';cats.forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c;if(c===cat)b.className='on';b.onclick=function(){cat=c;renderCats();render()};$('store-cats').appendChild(b)})}
+function addToCart(id,n){cart[id]=(cart[id]||0)+n;renderCart();render();}
+function render(){
+  var g=$('store-grid');g.innerHTML='';
+  var list=CATALOG.filter(function(p){return (cat==='All'||(cat==='♥ Wishlist'?wish[p.id]:p.cat===cat))&&(!q||(p.name+' '+p.code).toLowerCase().indexOf(q)>-1)});
+  if(!list.length){g.innerHTML='<div class="store-empty">'+(cat==='♥ Wishlist'?'Your wishlist is empty — tap ♥ on any item.':'No items match.')+'</div>'}
+  list.forEach(function(p){
+    var n=qty[p.id]||1, ovr=overrides[p.id]!=null&&overrides[p.id]!=='';
+    var d=document.createElement('div');d.className='sp';
+    d.innerHTML=(p.image?'<button type="button" class="sp-img"><img src="'+esc(p.image)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.parentNode.remove()"></button>':'')+'<div class="sp-top"><span class="sp-cat">'+esc(p.cat)+'</span><button type="button" class="sp-wish'+(wish[p.id]?' on':'')+'" aria-label="Wishlist">♥</button></div>'+
+      '<button type="button" class="sp-name">'+esc(p.name)+'</button><div class="sp-code">'+(p.code?'Code: '+esc(p.code):'')+'</div>'+
+      '<div class="sp-price'+(admin?' edit':'')+(admin&&ovr?' ovr':'')+'">'+peso(price(p))+'</div>'+(admin?'<div class="sp-dealer">Dealer '+peso(p.dealer)+'</div>':'')+
+      '<div class="sp-qty"><button type="button" class="q-minus" aria-label="Less">−</button><span>'+n+'</span><button type="button" class="q-plus" aria-label="More">+</button>'+(cart[p.id]?'<em>'+cart[p.id]+' in cart</em>':'')+'</div>'+
+      '<div class="sp-btns"><button type="button" class="sp-buy">BUY NOW</button><button type="button" class="sp-cart">ADD TO CART</button></div>';
+    d.querySelector('.sp-name').onclick=function(){openSpec(p)};if(p.image)d.querySelector('.sp-img').onclick=function(){openSpec(p)};
+    d.querySelector('.sp-wish').onclick=function(){if(wish[p.id])delete wish[p.id];else wish[p.id]=1;try{localStorage.setItem('neasWish',JSON.stringify(wish))}catch(e){}render()};
+    d.querySelector('.q-minus').onclick=function(){qty[p.id]=Math.max(1,n-1);render()};
+    d.querySelector('.q-plus').onclick=function(){qty[p.id]=n+1;render()};
+    d.querySelector('.sp-cart').onclick=function(){addToCart(p.id,n);qty[p.id]=1;render()};
+    d.querySelector('.sp-buy').onclick=function(){cart={};cart[p.id]=n;qty[p.id]=1;renderCart();render();openCheckout()};
+    if(admin)d.querySelector('.sp-price').onclick=function(){editPrice(p)};
+    g.appendChild(d);
+  });
+}
+function totals(){var n=0,t=0;Object.keys(cart).forEach(function(id){n+=cart[id];t+=cart[id]*price(byId(id))});return {n:n,t:t}}
+function renderCart(){var x=totals();$('store-quote').hidden=!x.n;$('sq-count').textContent=x.n;$('sq-total').textContent=peso(x.t);}
+$('sq-clear').onclick=function(){cart={};renderCart();render()};
+$('sq-send').onclick=function(){openCheckout()};
+$('store-q').oninput=function(e){q=e.target.value.trim().toLowerCase();render()};
+/* modal */
+var M=$('store-modal'),MB=$('store-modal-body');
+function openModal(html){MB.innerHTML=html;M.hidden=false;document.body.style.overflow='hidden';}
+function closeModal(){M.hidden=true;document.body.style.overflow='';}
+M.addEventListener('click',function(e){if(e.target===M||e.target.classList.contains('sm-close'))closeModal()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!M.hidden)closeModal()});
+function bankHtml(){return '<div class="sm-bank"><h4>Payment Mode · Bank Transfer</h4><table>'+
+  '<tr><th>Account Name</th><td>'+BANK.name+'</td></tr><tr><th>Account Number</th><td><b>'+BANK.acct+'</b> <button type="button" class="sm-copy" data-copy="'+BANK.acct+'">Copy</button></td></tr>'+
+  '<tr><th>SWIFT Code</th><td>'+BANK.swift+'</td></tr><tr><th>Bank</th><td>'+BANK.bank+'</td></tr></table></div>'}
+function wireCopy(){[].forEach.call(MB.querySelectorAll('.sm-copy'),function(b){b.onclick=function(){var t=b.dataset.copy;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copied ✓'},function(){b.textContent=t})}})}
+function openSpec(p){
+  openModal('<button type="button" class="sm-close" aria-label="Close">×</button><div class="sm-cat">'+esc(p.cat)+'</div>'+(p.image?'<img class="sm-img" src="'+esc(p.image)+'" alt="" onerror="this.remove()">':'')+'<h3>'+esc(p.name)+'</h3><div class="sm-pricerow"><div class="sm-price">'+peso(price(p))+'</div>'+(p.live!=null?'<button type="button" class="sm-share" id="sm-share">⤴ Share</button>':'')+'</div><div id="sm-sharebox" class="sm-sharebox" hidden></div>'+
+  '<h4>Product Specification</h4><table class="sm-spec"><tr><th>Item Code</th><td>'+esc(p.code||'—')+'</td></tr><tr><th>Category</th><td>'+esc(p.cat)+'</td></tr><tr><th>Description</th><td style="white-space:pre-line">'+esc(p.desc||p.name)+'</td></tr>'+(p.features?'<tr><th>Technical features</th><td><ul style="margin:0;padding-left:18px">'+p.features.split('\n').filter(function(l){return l.trim()}).map(function(l){return '<li>'+esc(l.replace(/^[-•*]\s*/,''))+'</li>'}).join('')+'</ul></td></tr>':'')+(p.specs?'<tr><th>Technical specs</th><td><a href="'+esc(p.specs)+'" target="_blank" rel="noopener" style="color:#ea580c;font-weight:700">View technical specs ↗</a></td></tr>':'')+'<tr><th>Unit Price</th><td>'+peso(price(p))+' (PHP)</td></tr><tr><th>Availability</th><td>Subject to stock confirmation</td></tr></table>'+
+  bankHtml()+'<div class="sp-btns"><button type="button" class="sp-buy" id="sm-buy">BUY NOW</button><button type="button" class="sp-cart" id="sm-add">ADD TO CART</button></div>');
+  wireCopy();if($('sm-share'))$('sm-share').onclick=function(){shareP(p)};$('sm-buy').onclick=function(){cart={};cart[p.id]=1;renderCart();render();openCheckout()};$('sm-add').onclick=function(){addToCart(p.id,1);closeModal()};
+}
+function openCheckout(){
+  var x=totals();if(!x.n)return;
+  var ref='NEAS-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  var rows=Object.keys(cart).map(function(id){var p=byId(id);return '<tr><td>'+esc(p.name)+(p.code?'<small>'+esc(p.code)+'</small>':'')+'</td><td>'+cart[id]+'</td><td>'+peso(cart[id]*price(p))+'</td></tr>'}).join('');
+  openModal('<button type="button" class="sm-close" aria-label="Close">×</button><h3>Checkout</h3><div class="sm-ref">Order reference: <b>'+ref+'</b></div>'+
+   '<table class="sm-order"><tr><th>Item</th><th>Qty</th><th>Amount</th></tr>'+rows+'<tr class="sm-tot"><td>Total</td><td>'+x.n+'</td><td>'+peso(x.t)+'</td></tr></table>'+
+   bankHtml()+'<ol class="sm-steps"><li>Transfer the total to the account above. Use <b>'+ref+'</b> as the reference.</li><li>Fill in your details and send the order.</li><li>Email or Viber your deposit slip; we confirm stock and delivery.</li></ol>'+
+   '<form id="sm-form" class="sm-form"><input name="name" placeholder="Full name / Company" required><input name="phone" placeholder="Mobile number" required><input name="email" type="email" placeholder="Email"><textarea name="addr" placeholder="Delivery address" rows="2" required></textarea><label class="sm-slip"><span>📎 Upload payment slip <small>(photo or PDF of your deposit/transfer receipt)</small></span><input type="file" name="slip" accept="image/*,application/pdf"></label><div class="sm-slip-prev" id="sm-slip-prev"></div>'+
+   '<button type="submit" class="sp-buy">SEND ORDER</button></form><p class="sm-fine">Prices subject to stock confirmation. Payment is verified manually by NEAS before release.</p>');
+  wireCopy();
+  var slipIn=MB.querySelector('input[name=slip]');slipIn.onchange=function(){var fl=slipIn.files[0],pv=$('sm-slip-prev');pv.innerHTML='';if(!fl)return;if(fl.size>10*1024*1024){pv.textContent='File is over 10 MB — please choose a smaller photo.';slipIn.value='';return}if(/^image\//.test(fl.type)){var im=document.createElement('img');im.src=URL.createObjectURL(fl);pv.appendChild(im)}var t=document.createElement('span');t.textContent='✓ '+fl.name;pv.appendChild(t)};
+  $('sm-form').onsubmit=function(e){e.preventDefault();var f=e.target;var slip=slipIn.files[0];
+    var lines=Object.keys(cart).map(function(id){var p=byId(id);return '- '+cart[id]+' x '+p.name+(p.code?' ('+p.code+')':'')+' = '+peso(cart[id]*price(p))});
+    var body='Order reference: '+ref+'\n\n'+lines.join('\n')+'\nTOTAL: '+peso(x.t)+'\n\nPayment: Bank transfer to '+BANK.bank+' '+BANK.acct+'\n\nName: '+f.name.value+'\nMobile: '+f.phone.value+'\nEmail: '+f.email.value+'\nDelivery address: '+f.addr.value;
+    body+='\nPayment slip: '+(slip?'attached ('+slip.name+')':'to follow');
+    var done=function(how){MB.querySelector('.sm-form').outerHTML='<div class="sm-done">✓ Order '+how+'. Reference <b>'+ref+'</b>.'+(slip&&how!=='shared'?'<br><b>Please attach your payment slip ('+esc(slip.name)+') to that email before sending</b> — browsers cannot attach files automatically.':'')+'<br>You can also send the slip by Viber to +63 991 426 5886 or email '+ORDER_EMAIL+'.</div>'};
+    if(slip&&navigator.canShare&&navigator.canShare({files:[slip]})){navigator.share({files:[slip],title:'Online order '+ref,text:'To: '+ORDER_EMAIL+'\n\n'+body}).then(function(){done('shared')},function(){location.href='mailto:'+ORDER_EMAIL+'?subject='+encodeURIComponent('Online order '+ref)+'&body='+encodeURIComponent(body);done('opened in your email app')});return}
+    location.href='mailto:'+ORDER_EMAIL+'?subject='+encodeURIComponent('Online order '+ref)+'&body='+encodeURIComponent(body);done('opened in your email app');
+  };
+}
+function setStatus(t){$('store-admin-status').textContent=t}
+function editPrice(p){
+  var cur=overrides[p.id]!=null?overrides[p.id]:'';
+  var v=prompt('Price for '+p.name+' (₱). Leave blank to use dealer + '+markup+'% markup.',cur);
+  if(v===null)return;v=v.replace(/[₱,\s]/g,'');
+  if(v!==''&&isNaN(Number(v))){setStatus('Not a number');return}
+  setStatus('Saving…');
+  db.doc('prices/'+p.id).set({price:v===''?null:Number(v)}).then(function(){setStatus('Saved ✓')},function(e){setStatus('Not saved: '+(e&&e.code||'error'))});
+}
+renderCats();render();
+function shareP(p){var u=location.origin+'/store/p/'+encodeURIComponent(p.id),t=p.name+' — '+peso(price(p))+' | NEAS Online Store',e=encodeURIComponent;
+  if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({title:t,text:t,url:u}).catch(function(){});return}
+  var L=[['Facebook','https://www.facebook.com/sharer/sharer.php?u='+e(u)],['Messenger','fb-messenger://share/?link='+e(u)],['WhatsApp','https://wa.me/?text='+e(t+' '+u)],['Viber','viber://forward?text='+e(t+' '+u)],['X','https://twitter.com/intent/tweet?text='+e(t)+'&url='+e(u)],['LinkedIn','https://www.linkedin.com/sharing/share-offsite/?url='+e(u)],['Email','mailto:?subject='+e(t)+'&body='+e(t+'\n'+u)]];
+  var b=$('sm-sharebox');b.hidden=!b.hidden;b.innerHTML=L.map(function(x){return '<a href="'+x[1]+'" target="_blank" rel="noopener">'+x[0]+'</a>'}).join('')+'<button type="button" id="sm-copylink">Copy link</button><a href="'+u+'" target="_blank">Product page ↗</a>';
+  $('sm-copylink').onclick=function(){(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){$('sm-copylink').textContent='Copied ✓'},function(){prompt('Copy link:',u)})};}
+function loadLive(){fetch('/api/products',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){var a=d&&(d.products||d.data||d);if(!Array.isArray(a)||!a.length)return;
+  var seen={},keep=[];a.slice().sort(function(x,y){return (y.id[0]==='s')-(x.id[0]==='s')||(!!y.image)-(!!x.image)}).forEach(function(x){var k=(x.name+'|'+(x.code||'')).toLowerCase().replace(/\s+/g,' ');if(!seen[k]){seen[k]=1;keep.push(x)}});a=a.filter(function(x){return keep.indexOf(x)>-1});CATALOG.length=0;a.forEach(function(x){CATALOG.push({id:x.id,cat:x.category||'Other',code:x.code||'',name:x.name,dealer:0,live:Number(x.price),image:x.image||'',desc:x.description||'',features:x.features||'',specs:/^(https?:\/\/|\/)/i.test(x.specs_url||'')?x.specs_url:''})});
+  cats=['All','♥ Wishlist'].concat(CATALOG.map(function(p){return p.cat}).filter(function(c,i,a){return a.indexOf(c)===i}));cart={};renderCats();render();renderCart();}).catch(function(){})}
+loadLive();
+if(window.claude&&claude.use){
+  claude.use('db').then(function(d){ if(!d)return; db=d;
+    db.doc('store/settings').onSnapshot(function(s){var m=s.exists&&s.data().markup;if(typeof m==='number'){markup=m;$('store-markup').value=m}render();renderCart()});
+    db.collection('prices').onSnapshot(function(s){overrides={};s.docs.forEach(function(x){var v=x.data().price;if(v!=null)overrides[x.id]=v});render();renderCart()});
+    claude.use('user').then(function(u){ if(!u)return; u.canEdit().then(function(ok){ if(!ok)return; admin=true;$('store-admin').hidden=false;$('store-markup').value=markup;render();
+      $('store-markup').onchange=function(e){var m=Number(e.target.value);if(isNaN(m)||m<0)return;setStatus('Saving…');db.doc('store/settings').set({markup:m}).then(function(){setStatus('Saved ✓')},function(e){setStatus('Not saved: '+(e&&e.code||'error'))})};
+      $('store-pricelist').onclick=openPriceList;
+    })});
+  });
+}
+function openPriceList(){
+  var rows=CATALOG.map(function(p){var o=overrides[p.id];return '<tr data-id="'+p.id+'"><td>'+esc(p.name)+'<small>'+esc(p.code||'')+' · '+esc(p.cat)+'</small></td><td>'+peso(p.dealer)+'</td><td><input type="number" min="0" step="5" value="'+(o!=null&&o!==''?o:'')+'" placeholder="'+Math.ceil(p.dealer*(1+markup/100)/5)*5+'"></td></tr>'}).join('');
+  openModal('<button type="button" class="sm-close" aria-label="Close">×</button><h3>Admin · Price List</h3><p class="sm-fine">Selling price per item. Leave blank to use dealer + '+markup+'% markup (shown in grey). Only admins see this.</p><input type="search" id="pl-q" class="pl-q" placeholder="Filter…"><div class="pl-wrap"><table class="sm-order pl"><tr><th>Item</th><th>Dealer</th><th>Selling ₱</th></tr>'+rows+'</table></div><div class="pl-foot"><span id="pl-status"></span><button type="button" class="sp-buy" id="pl-save">SAVE CHANGES</button></div>');
+  $('pl-q').oninput=function(e){var v=e.target.value.toLowerCase();[].forEach.call(MB.querySelectorAll('.pl tr[data-id]'),function(r){r.style.display=r.textContent.toLowerCase().indexOf(v)>-1?'':'none'})};
+  $('pl-save').onclick=function(){var ch=[];[].forEach.call(MB.querySelectorAll('.pl tr[data-id]'),function(r){var id=r.dataset.id,v=r.querySelector('input').value.trim(),cur=overrides[id]!=null?String(overrides[id]):'';if(v!==cur)ch.push([id,v===''?null:Number(v)])});
+    if(!ch.length){$('pl-status').textContent='No changes';return}var i=0;$('pl-status').textContent='Saving 0/'+ch.length+'…';
+    (function next(){if(i>=ch.length){$('pl-status').textContent='Saved '+ch.length+' price(s) ✓';return}var c=ch[i++];db.doc('prices/'+c[0]).set({price:c[1]}).then(function(){$('pl-status').textContent='Saving '+i+'/'+ch.length+'…';next()},function(e){$('pl-status').textContent='Stopped at '+i+': '+(e&&e.code||'error')})})();};
+}
+/* show store only from menu */
+var ST=$('store');function showStore(){ST.classList.add('open');}
+[].forEach.call(document.querySelectorAll('a[href="#store"]'),function(a){a.addEventListener('click',function(e){e.preventDefault();showStore();ST.scrollIntoView({behavior:'smooth'})})});
+if(location.hash==='#store'){showStore();setTimeout(function(){ST.scrollIntoView()},300)}
+window.addEventListener('hashchange',function(){if(location.hash==='#store')showStore()});
+$('store-close').onclick=function(){ST.classList.remove('open');window.scrollTo({top:0,behavior:'smooth'})};
+})();
+</script>
+
+
+
+
+
+<div id="admin-panel" class="ap-ov" hidden role="dialog" aria-modal="true" aria-labelledby="ap-title"><div class="ap-box">
+<button type="button" class="ap-x" aria-label="Close admin panel">×</button>
+<div class="ap-eyebrow">Admin control panel · only visible to admins</div><h3 id="ap-title">Store prices</h3>
+<div id="ap-slot"></div>
+<p class="ap-note">Customers never see this panel or your dealer prices.</p></div></div>
+
+<script id="admin-panel-js">
+(function(){
+var bar=document.getElementById('store-admin'),ov=document.getElementById('admin-panel');
+if(!bar||!ov)return;
+document.getElementById('ap-slot').appendChild(bar);
+function isAdmin(){return !bar.hidden}
+var gate=document.createElement('div');gate.className='ap-gate';gate.hidden=true;gate.innerHTML='<b>Admins only.</b> This area is for NEAS staff. Sign in to claude.ai with the NEAS admin account to manage prices.';
+document.getElementById('ap-slot').before(gate);
+function open(e){if(e)e.preventDefault();var a=isAdmin();bar.parentNode.hidden=!a;gate.hidden=a;document.getElementById('ap-title').textContent=a?'Store prices':'Admin log in';ov.hidden=false;document.body.style.overflow='hidden';}
+function close(){ov.hidden=true;document.body.style.overflow='';}
+document.getElementById('admin-login-link').addEventListener('click',open);
+ov.addEventListener('click',function(e){if(e.target===ov||e.target.classList.contains('ap-x'))close()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!ov.hidden)close()});
+var pl=document.getElementById('store-pricelist');if(pl)pl.addEventListener('click',close,true);
+})();
+</script>
+<div id="acct-ov" class="ap-ov" hidden role="dialog" aria-modal="true" aria-labelledby="acct-title"><div class="ap-box" style="max-width:480px">
+<button type="button" class="ap-x" aria-label="Close">×</button>
+<div class="ap-eyebrow">Customer account</div><h3 id="acct-title">Log in</h3>
+<div id="acct-body"></div></div></div>
+
+<script id="acct-js">
+(function(){
+var ov=document.getElementById('acct-ov'),body=document.getElementById('acct-body'),title=document.getElementById('acct-title');
+var db=null,uid=null,profile=null,ready=false,mode='login';
+function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+function ref(){return db.collection('data/users/'+uid).doc('profile')}
+function setNav(){var l=document.getElementById('acct-login'),s=document.getElementById('acct-signup');
+  if(profile&&profile.name){l.textContent='My Account';s.hidden=true;}else{l.textContent='Log in';s.hidden=false;}}
+function render(){
+  if(!ready){body.innerHTML='<p class="acct-info">Connecting…</p>';return}
+  if(!db||!uid){title.textContent=mode==='signup'?'Sign up':'Log in';
+    body.innerHTML='<p class="acct-info">Create or use your NEAS customer account with an active Gmail or Facebook account. You can still browse the Online Store without signing in.</p><div class="acct-social"><a class="acct-google" href="/api/auth/oauth/google?next=%2Fstore">Continue with Gmail</a><a class="acct-facebook" href="/api/auth/oauth/facebook?next=%2Fstore">Continue with Facebook</a></div><a class="acct-email" href="/login?next=%2Fstore">Use email and password</a>';return}
+  if(profile&&profile.name&&mode!=='edit'){title.textContent='My Account';
+    body.innerHTML='<div class="acct-info"><b>'+esc(profile.name)+'</b>'+(profile.company?'<br>'+esc(profile.company):'')+'<br>'+esc(profile.phone||'')+'<br>'+esc(profile.address||'')+'</div>'+
+    '<p style="font-size:13px;color:#64748b">You\'re logged in. Your details fill in automatically at checkout.</p><div style="display:flex;gap:8px"><button type="button" class="acct-go" id="acct-edit" style="flex:1">Edit details</button><button type="button" class="acct-go" id="acct-shop" style="flex:1;background:#0f766e">Go to Online Store</button></div>';
+    document.getElementById('acct-edit').onclick=function(){mode='edit';render()};
+    document.getElementById('acct-shop').onclick=function(){close();var a=document.querySelector('a[href="#store"]');if(a)a.click()};return}
+  var isNew=!(profile&&profile.name);
+  title.textContent=mode==='edit'?'Edit my details':(isNew?(mode==='signup'?'Sign up':'Log in'):'Log in');
+  var tabs=isNew&&mode!=='edit'?'<div class="acct-tabs"><button type="button" data-m="login" class="'+(mode==='login'?'on':'')+'">Log in</button><button type="button" data-m="signup" class="'+(mode==='signup'?'on':'')+'">Sign up</button></div>':'';
+  if(isNew&&mode==='login'){body.innerHTML=tabs+'<p class="acct-info">Choose an active Gmail or Facebook account to continue, or use your NEAS email and password.</p><div class="acct-social"><a class="acct-google" href="/api/auth/oauth/google?next=%2Fstore">Continue with Gmail</a><a class="acct-facebook" href="/api/auth/oauth/facebook?next=%2Fstore">Continue with Facebook</a></div><a class="acct-email" href="/login?next=%2Fstore">Use email and password</a>';}
+  else{var p=profile||{};
+    body.innerHTML=tabs+'<form class="acct-form" id="acct-form"><label>Full name<input name="name" required maxlength="160" value="'+esc(p.name)+'"></label><label>Company (optional)<input name="company" maxlength="180" value="'+esc(p.company)+'"></label><label>Mobile number<input name="phone" required maxlength="40" value="'+esc(p.phone)+'"></label><label>Delivery address<textarea name="address" rows="2" maxlength="600" required>'+esc(p.address)+'</textarea></label><div class="acct-msg" id="acct-msg"></div><button class="acct-go">'+(mode==='edit'?'Save details':'Create my account')+'</button></form>';
+    document.getElementById('acct-form').onsubmit=function(e){e.preventDefault();var f=e.target,m=document.getElementById('acct-msg');
+      var data={name:f.name.value.trim(),company:f.company.value.trim(),phone:f.phone.value.trim(),address:f.address.value.trim(),updatedAt:Date.now()};
+      m.textContent='Saving…';ref().set(data).then(function(){profile=data;mode='login';setNav();render()},function(err){m.style.color='#b91c1c';m.textContent='Could not save ('+(err&&err.code||'error')+'). Please try again.'})};}
+  [].forEach.call(body.querySelectorAll('[data-m]'),function(b){b.onclick=function(){mode=b.dataset.m;render()}});
+}
+function open(m){mode=m;render();ov.hidden=false;document.body.style.overflow='hidden';}
+function close(){ov.hidden=true;document.body.style.overflow='';}
+/* Use the live NEAS session routes so the homepage cannot show a separate signed-out state. */
+document.getElementById('acct-login').onclick=function(){location.href='/account'};
+document.getElementById('acct-signup').onclick=function(){location.href='/login?next=%2Fstore'};
+ov.addEventListener('click',function(e){if(e.target===ov||e.target.classList.contains('ap-x'))close()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!ov.hidden)close()});
+/* autofill checkout */
+var mb=document.getElementById('store-modal-body');
+if(mb)new MutationObserver(function(){var f=document.getElementById('sm-form');if(!f||!profile||f.dataset.filled)return;f.dataset.filled=1;
+  if(f.name&&!f.name.value)f.name.value=(profile.company?profile.company+' — ':'')+profile.name;if(f.phone&&!f.phone.value)f.phone.value=profile.phone||'';if(f.addr&&!f.addr.value)f.addr.value=profile.address||'';}).observe(mb,{childList:true,subtree:true});
+function done(){ready=true;setNav();if(!ov.hidden)render()}
+if(window.claude&&claude.use){Promise.all([claude.use('db'),claude.use('user')]).then(function(r){db=r[0];var u=r[1];
+  if(!db||!u){done();return}
+  u.id().then(function(id){uid=id;if(!uid){done();return}
+    ref().get().then(function(s){profile=s.exists?s.data():null;done()},function(){done()})},function(){done()})},function(){done()});
+}else done();
+setTimeout(function(){if(!ready)done()},11000);
+})();
+</script>
+<script id="store-autohide">
+(function(){
+var ST=document.getElementById('store');if(!ST||!('IntersectionObserver' in window))return;
+function buying(){var q=document.getElementById('store-quote');var m=document.getElementById('store-modal');var a=document.getElementById('admin-panel');
+  return (q&&!q.hidden)||(m&&!m.hidden)||(a&&!a.hidden)}
+function hide(){if(ST.classList.contains('open')&&!buying())ST.classList.remove('open')}
+var idle=null;function arm(){clearTimeout(idle);idle=setTimeout(hide,45000)}
+['click','keydown','input','pointermove','scroll','touchstart'].forEach(function(ev){ST.addEventListener(ev,arm,{passive:true})});
+new MutationObserver(function(){if(ST.classList.contains('open'))arm();else clearTimeout(idle)}).observe(ST,{attributes:true,attributeFilter:['class']});
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(a&&a.getAttribute('href')!=='#store'&&!ST.contains(a))hide()},true);
+var t=null;
+new IntersectionObserver(function(es){es.forEach(function(en){clearTimeout(t);if(!en.isIntersecting&&ST.classList.contains('open'))t=setTimeout(hide,1200)})},{threshold:0}).observe(ST);
+})();
+</script>
+
+<script id="mobile-menu-js">
+(function(){var b=document.querySelector('.nav-toggle'),m=document.getElementById('mobile-menu');if(!b||!m)return;
+function set(o){m.hidden=!o;b.setAttribute('aria-expanded',o);b.setAttribute('aria-label',o?'Close menu':'Open menu')}
+b.addEventListener('click',function(){set(m.hidden)});
+m.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;if(a.dataset.acct){e.preventDefault();var t=document.getElementById(a.dataset.acct);set(false);if(t)t.click();return}set(false)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden){set(false);b.focus()}});
+})();
+</script>
+
+<script id="neas-motion-js">
+(function(){
+var d=document,h=d.documentElement,rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var hdr=d.querySelector('.site-header'),nav=d.querySelector('.nav-inner');
+function ready(f){d.readyState==='loading'?d.addEventListener('DOMContentLoaded',f):f()}
+ready(function(){
+ try{
+ // header: progress bar, shrink on scroll
+ var bar=d.createElement('div');bar.className='neas-progress';if(hdr)hdr.appendChild(bar);
+ // mobile menu
+ var links=[].slice.call(d.querySelectorAll('.nav-links > li > a[href^="#"]'));
+ var burger=d.createElement('button');burger.type='button';burger.className='nav-burger';burger.setAttribute('aria-label','Menu');burger.setAttribute('aria-expanded','false');burger.innerHTML='<span></span><span></span><span></span>';
+ var mm=d.createElement('div');mm.className='m-menu';
+ links.forEach(function(a,i){var b=d.createElement('button');b.type='button';b.textContent=a.textContent;b.style.setProperty('--i',i);b.dataset.href=a.getAttribute('href');b.onclick=function(){close();setTimeout(function(){a.click()},120)};mm.appendChild(b)});
+ ['acct-login','acct-signup'].forEach(function(id,k){var o=d.getElementById(id);if(!o)return;var b=d.createElement('button');b.type='button';b.textContent=o.textContent;b.style.setProperty('--i',links.length+k);b.onclick=function(){close();setTimeout(function(){o.click()},120)};mm.appendChild(b)});
+ function close(){burger.classList.remove('open');mm.classList.remove('open');burger.setAttribute('aria-expanded','false')}
+ burger.onclick=function(){var o=!mm.classList.contains('open');burger.classList.toggle('open',o);mm.classList.toggle('open',o);burger.setAttribute('aria-expanded',o)};
+ if(nav&&hdr){nav.appendChild(burger);hdr.appendChild(mm)}
+ d.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+ addEventListener('resize',function(){if(innerWidth>900)close()});
+ // scroll reveal
+ if(!rm&&'IntersectionObserver' in window){
+  h.classList.add('neas-js');
+  var seen=new Set();
+  function tag(sel,cls,step,per){[].slice.call(d.querySelectorAll(sel)).forEach(function(el,i){
+   if(seen.has(el)||el.classList.contains('reveal')||el.closest('.store-overlay'))return;seen.add(el);
+   var p=el.parentElement,idx=[].indexOf.call(p.children,el);
+   el.classList.add('neas-r',cls);el.style.setProperty('--d',((per?idx%per:idx)*step)+'ms')})}
+  tag('.section-eyebrow,.section-title,.section-lead','up',90,3);
+  tag('.about-grid > *:first-child','left',0);
+  tag('.about-grid > *:last-child','right',0);
+  tag('.value-item','right',110);
+  tag('.service-card','up',90,3);
+  tag('.gallery-item','zoom',80,4);
+  tag('#testimonials .container > div > div','up',120,3);
+  tag('.team-card','zoom',120,3);
+  tag('.contact-item','left',90);
+  tag('.footer-col,.footer-brand,.footer-emergency','up',100);
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;io.unobserve(el);el.classList.add('neas-in');
+   var wait=900+parseInt(el.style.getPropertyValue('--d')||0);
+   setTimeout(function(){el.classList.remove('neas-r','up','left','right','zoom','neas-in');el.style.removeProperty('--d')},wait)})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  [].slice.call(d.querySelectorAll('.neas-r')).forEach(function(el){io.observe(el)});
+ }
+ // count-up stats
+ var nums=[].slice.call(d.querySelectorAll('.stat-num')).filter(function(n){return !n.children.length&&/^\d+/.test(n.textContent.trim())});
+ if(!rm&&'IntersectionObserver' in window&&nums.length){
+  var co=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;co.unobserve(e.target);var n=e.target,t=n.textContent.trim(),m=t.match(/^(\d+)(.*)$/),to=+m[1];if(!to)return;var t0=performance.now();
+   (function f(now){var p=Math.min((now-t0)/1400,1),v=Math.round(to*(1-Math.pow(1-p,3)));n.textContent=v+m[2];if(p<1)requestAnimationFrame(f)})(t0)})},{threshold:.6});
+  nums.forEach(function(n){co.observe(n)});
+ }
+ // scroll: progress, header, hero fade, scroll-spy
+ var secs=links.map(function(a){return d.querySelector(a.getAttribute('href'))}),hc=d.querySelector('.hero-content'),tk=false;
+ function onScroll(){tk=false;var y=scrollY,max=h.scrollHeight-innerHeight;
+  bar.style.transform='scaleX('+(max>0?Math.min(y/max,1):0)+')';
+  if(hdr)hdr.classList.toggle('scrolled',y>30);
+  if(hc&&!rm&&y<innerHeight){hc.style.transform='translateY('+(y*.12)+'px)';hc.style.opacity=Math.max(1-y/(innerHeight*.9),0)}
+  var cur=-1;secs.forEach(function(s,i){if(s&&s.offsetParent!==null&&s.getBoundingClientRect().top<innerHeight*.4)cur=i});
+  links.forEach(function(a,i){a.classList.toggle('active',i===cur)});
+  [].forEach.call(mm.children,function(b){b.classList.toggle('active',!!b.dataset.href&&links[cur]&&b.dataset.href===links[cur].getAttribute('href'))})}
+ addEventListener('scroll',function(){if(!tk){tk=true;requestAnimationFrame(onScroll)}},{passive:true});
+ onScroll();
+ }catch(err){h.classList.remove('neas-js');console.warn('motion layer off',err)}
+});
+})();
+</script>
+</body></html>
