@@ -53,5 +53,19 @@ export async function renderHomepage(): Promise<string> {
   ].filter(Boolean).join("");
   if (extra) html = html.replace(/(<a class="side-social"[^>]*title="TikTok"[\s\S]*?<\/a>)/, `$1${extra}`);
   if (social.googleReview) html = html.replace('<div class="footer-bottom">', `<div style="text-align:center;margin:0 0 14px"><a href="${esc(social.googleReview)}" target="_blank" rel="noopener" style="display:inline-block;background:#fff;color:#0f172a;border:1px solid #e2e8f0;border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none">⭐ Review us on Google</a></div><div class="footer-bottom">`);
+
+  // URL fragments are not sent to the server, so legacy hash URLs must be
+  // normalized in the browser. Replace the old URL with the dedicated route;
+  // that route supplies its own canonical metadata and scroll position.
+  const legacyRoutes: Record<string, string> = {
+    store: "/store",
+    services: "/services",
+    partners: "/partners",
+    contact: "/contact",
+    about: "/about",
+    hero: "/home",
+  };
+  const legacyRedirect = `<script>(function(){var routes=${JSON.stringify(legacyRoutes)};var key=window.location.hash.slice(1);var target=routes[key];if(!target)return;if(window.location.pathname!==target){window.location.replace(target+window.location.search);return;}window.history.replaceState(null,"",target+window.location.search);})();</script>`;
+  html = html.replace("</body>", legacyRedirect + "</body>");
   return html;
 }
