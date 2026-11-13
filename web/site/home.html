@@ -1190,11 +1190,8 @@ function openPriceList(){
     if(!ch.length){$('pl-status').textContent='No changes';return}var i=0;$('pl-status').textContent='Saving 0/'+ch.length+'…';
     (function next(){if(i>=ch.length){$('pl-status').textContent='Saved '+ch.length+' price(s) ✓';return}var c=ch[i++];db.doc('prices/'+c[0]).set({price:c[1]}).then(function(){$('pl-status').textContent='Saving '+i+'/'+ch.length+'…';next()},function(e){$('pl-status').textContent='Stopped at '+i+': '+(e&&e.code||'error')})})();};
 }
-/* show store only from menu */
-var ST=$('store');function showStore(){ST.classList.add('open');}
-[].forEach.call(document.querySelectorAll('a[href="#store"]'),function(a){a.addEventListener('click',function(e){e.preventDefault();showStore();ST.scrollIntoView({behavior:'smooth'})})});
-if(location.hash==='#store'){showStore();setTimeout(function(){ST.scrollIntoView()},300)}
-window.addEventListener('hashchange',function(){if(location.hash==='#store')showStore()});
+/* Store navigation uses the dedicated clean /store route. */
+var ST=$('store');
 $('store-close').onclick=function(){ST.classList.remove('open');window.scrollTo({top:0,behavior:'smooth'})};
 })();
 </script>
