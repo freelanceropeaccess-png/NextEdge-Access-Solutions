@@ -7,11 +7,11 @@ export default async function Header() {
   const user = await getUser().catch(() => null);
   const links = (
     <>
-      <a href="/">Home</a>
+      <a href="/home">Home</a>
       <Link href="/store" className="nav-store">Online Store</Link>
       {user?.role === "admin" && <Link href="/admin">Admin Panel</Link>}
       {user ? <><Link href="/account">My Account</Link><LogoutButton /></> : <Link href="/login">Log in / Sign up</Link>}
-      <a className="cta" href="/#contact">Get a Quote</a>
+      <a className="cta" href="/contact">Get a Quote</a>
     </>
   );
   return (

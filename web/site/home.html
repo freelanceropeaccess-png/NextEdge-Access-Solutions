@@ -581,32 +581,32 @@ section[id]{scroll-margin-top:64px}
 <header class="site-header">
   <div class="container">
     <nav class="nav-inner">
-      <a class="nav-logo" href="#hero">
+      <a class="nav-logo" href="/home">
         <img src="/img/83c162b165ae.png" alt="NEAS Logo">
         <div class="nav-logo-text">NEXTEDGE<span>Access Solutions · OPC</span></div>
       </a>
       <ul class="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#services">Services</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
         
-        <li><a href="#store">Online Store</a></li>
-        <li><a href="#partners">Partners</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="/store">Online Store</a></li>
+        <li><a href="/partners">Partners</a></li>
+        <li><a href="/contact">Contact</a></li>
         <li class="acct-li"><button type="button" class="acct-btn" id="acct-login">Log in</button></li>
         <li class="acct-li"><button type="button" class="acct-btn acct-signup" id="acct-signup">Sign up</button></li>
       </ul>
-      <a href="#contact" class="nav-cta">Get a Quote</a>
+      <a href="/contact" class="nav-cta">Get a Quote</a>
       <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
     </nav>
     <div class="mobile-menu" id="mobile-menu" hidden>
-      <a href="#store" class="mm-store">🛒 Online Store</a>
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#partners">Partners</a>
-      <a href="#contact">Contact</a>
+      <a href="/store" class="mm-store">🛒 Online Store</a>
+      <a href="/about">About</a>
+      <a href="/services">Services</a>
+      <a href="/partners">Partners</a>
+      <a href="/contact">Contact</a>
       <a href="#" class="mm-acct" data-acct="acct-login">Log in</a>
       <a href="#" class="mm-acct" data-acct="acct-signup">Sign up</a>
-      <a href="#contact" class="mm-cta">Get a Quote</a>
+      <a href="/contact" class="mm-cta">Get a Quote</a>
     </div>
   </div>
 </header>
@@ -620,8 +620,8 @@ section[id]{scroll-margin-top:64px}
       <h1 class="hero-title">Height is not a limit.<br><em>It is our expertise.</em></h1>
       <p class="hero-sub">NextEdge Access Solutions. delivers safe, efficient, and cost-effective rope access services for industrial, commercial, wind energy, and telecom projects across Asia.</p>
       <div class="hero-actions">
-        <a href="#services" class="btn btn-primary">Our Services</a>
-        <a href="#contact" class="btn btn-outline">Request a Quote</a>
+        <a href="/services" class="btn btn-primary">Our Services</a>
+        <a href="/contact" class="btn btn-outline">Request a Quote</a>
       </div>
     </div>
   </div>
@@ -892,8 +892,8 @@ section[id]{scroll-margin-top:64px}
         <p>IRATA-certified rope access specialists serving Asia since 2025. Safe · Reliable · Professional.</p>
       </div>
       <div class="footer-links">
-        <div class="footer-col"><h4>Services</h4><ul><li><a href="#services">Rope Access &amp; Facade</a></li><li><a href="#services">NDT Inspection</a></li><li><a href="#services">Blasting &amp; Painting</a></li><li><a href="#services">Wind &amp; Met Mast</a></li><li><a href="#services">Telecom Tower</a></li><li><a href="#services">Training &amp; PPE</a></li><li><a href="#services">Wind Turbine</a></li></ul></div>
-        <div class="footer-col"><h4>Company</h4><ul><li><a href="#about">About Us</a></li><li><a href="#partners">Partners</a></li><li><a href="#team">Team</a></li><li><a href="#contact">Contact</a></li></ul></div>
+        <div class="footer-col"><h4>Services</h4><ul><li><a href="/services">Rope Access &amp; Facade</a></li><li><a href="/services">NDT Inspection</a></li><li><a href="/services">Blasting &amp; Painting</a></li><li><a href="/services">Wind &amp; Met Mast</a></li><li><a href="/services">Telecom Tower</a></li><li><a href="/services">Training &amp; PPE</a></li><li><a href="/services">Wind Turbine</a></li></ul></div>
+        <div class="footer-col"><h4>Company</h4><ul><li><a href="/about">About Us</a></li><li><a href="/partners">Partners</a></li><li><a href="#team">Team</a></li><li><a href="/contact">Contact</a></li></ul></div>
       </div>
       <div class="footer-emergency">
         <p>🚨 24/7 Emergency</p>
@@ -911,7 +911,7 @@ section[id]{scroll-margin-top:64px}
 
 <!-- SIDE PANEL -->
 <div class="side-panel">
-  <a class="side-hotline" href="#contact" title="Emergency Hotline">Emergency Hotline</a>
+  <a class="side-hotline" href="/contact" title="Emergency Hotline">Emergency Hotline</a>
   <div class="side-socials">
     <a class="side-social" href="https://www.facebook.com/NextEdgeAccessSolutionss" target="_blank" rel="noopener" title="Facebook">
       <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
@@ -1246,7 +1246,7 @@ function render(){
     body.innerHTML='<div class="acct-info"><b>'+esc(profile.name)+'</b>'+(profile.company?'<br>'+esc(profile.company):'')+'<br>'+esc(profile.phone||'')+'<br>'+esc(profile.address||'')+'</div>'+
     '<p style="font-size:13px;color:#64748b">You\'re logged in. Your details fill in automatically at checkout.</p><div style="display:flex;gap:8px"><button type="button" class="acct-go" id="acct-edit" style="flex:1">Edit details</button><button type="button" class="acct-go" id="acct-shop" style="flex:1;background:#0f766e">Go to Online Store</button></div>';
     document.getElementById('acct-edit').onclick=function(){mode='edit';render()};
-    document.getElementById('acct-shop').onclick=function(){close();var a=document.querySelector('a[href="#store"]');if(a)a.click()};return}
+    document.getElementById('acct-shop').onclick=function(){close();location.href='/store'};return}
   var isNew=!(profile&&profile.name);
   title.textContent=mode==='edit'?'Edit my details':(isNew?(mode==='signup'?'Sign up':'Log in'):'Log in');
   var tabs=isNew&&mode!=='edit'?'<div class="acct-tabs"><button type="button" data-m="login" class="'+(mode==='login'?'on':'')+'">Log in</button><button type="button" data-m="signup" class="'+(mode==='signup'?'on':'')+'">Sign up</button></div>':'';
