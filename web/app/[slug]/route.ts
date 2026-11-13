@@ -52,7 +52,7 @@ export async function GET(
 
   const canonical = `${origin}/${slug}`;
   html = html
-    .replace(/<title>[\\s\\S]*?<\\/title>/, `<title>${page.title}</title>`)
+    .replace(/<title>[\s\S]*?<\/title>/, `<title>${page.title}</title>`)
     .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${page.description}">`)
     .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${canonical}">`)
     .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${page.title}">`)
