@@ -5,7 +5,18 @@ import StoreClient from "./StoreClient";
 import catalog from "../../scripts/catalog.json";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Online Store — NEAS" };
+export const metadata = {
+  title: "Online Store — NEAS",
+  description: "Shop certified rope access, work-at-height, and PPE equipment from NextEdge Access Solutions. Browse products and request orders online.",
+  alternates: { canonical: "/store" },
+  openGraph: {
+    title: "Online Store — NEAS",
+    description: "Shop certified rope access, work-at-height, and PPE equipment from NextEdge Access Solutions.",
+    url: "/store",
+    siteName: "NextEdge Access Solutions",
+    type: "website",
+  },
+};
 
 export default async function Store() {
   const [products, user] = await Promise.all([
