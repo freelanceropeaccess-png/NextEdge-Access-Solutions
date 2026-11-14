@@ -65,7 +65,7 @@ export async function renderHomepage(): Promise<string> {
     about: "/about",
     hero: "/home",
   };
-  const legacyRedirect = `<script>(function(){var routes=${JSON.stringify(legacyRoutes)};var key=window.location.hash.slice(1);var target=routes[key];if(!target)return;if(window.location.pathname!==target){window.location.replace(target+window.location.search);return;}window.history.replaceState(null,"",target+window.location.search);})();</script>`;
+  const legacyRedirect = `<script>(function(){var routes=${JSON.stringify(legacyRoutes)};function normalize(){var key=window.location.hash.slice(1).toLowerCase();var target=routes[key];if(!target)return;if(window.location.pathname!==target){window.location.replace(target+window.location.search);return;}window.history.replaceState(null,"",target+window.location.search);}window.addEventListener("hashchange",normalize);normalize();})();</script>`;
   html = html.replace("</body>", legacyRedirect + "</body>");
   return html;
 }
