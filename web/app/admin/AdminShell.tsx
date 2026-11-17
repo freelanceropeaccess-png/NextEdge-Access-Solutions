@@ -32,6 +32,7 @@ export default function AdminShell({ counts, sections, adminName }: { counts: { 
         </button>)}</div>)}
       <div className="adm-group"><div className="adm-gt">Marketing</div>
         <a className="adm-item mk" href="/admin/marketing"><span className="adm-ic" aria-hidden>✦</span><span className="adm-lb">Marketing Command Center</span></a>
+        <a className="adm-item" href="/admin/ai-workforce"><span className="adm-ic" aria-hidden>◈</span><span className="adm-lb">NEAS AI Workforce</span></a>
         <a className="adm-item" href="/links" target="_blank" rel="noopener"><span className="adm-ic" aria-hidden>🔗</span><span className="adm-lb">Link-in-Bio page ↗</span></a>
       </div>
       <div className="adm-group"><div className="adm-gt">Quick links</div>
