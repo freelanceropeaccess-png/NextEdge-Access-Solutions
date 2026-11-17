@@ -108,5 +108,47 @@ await sql`alter table users add column if not exists mk_access text`;
 await sql`alter table users add column if not exists mk_access_ref text`;
 await sql`alter table users add column if not exists mk_access_at timestamptz`;
 await sql`alter table users add column if not exists mk_access_until timestamptz`;
+// ---- NEAS AI Workforce (additive, admin-only data) ----
+await sql`create table if not exists aiw_leads (
+  id bigserial primary key,
+  company text not null,
+  contact text not null default '',
+  email text not null default '',
+  phone text not null default '',
+  service text not null,
+  source text not null default 'Manual entry',
+  stage text not null default 'new' check (stage in ('new','qualified','discovery','proposal','negotiation','won','lost')),
+  estimated_value numeric(14,2) not null default 0 check (estimated_value >= 0),
+  next_step text not null default '',
+  contact_status text not null default 'unreviewed' check (contact_status in ('unreviewed','permitted','opted_out')),
+  created_by int references users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+)`;
+await sql`create index if not exists aiw_leads_stage_created_idx on aiw_leads(stage, created_at desc)`;
+await sql`create index if not exists aiw_leads_company_idx on aiw_leads(company)`;
+await sql`create table if not exists aiw_outreach_drafts (
+  id bigserial primary key,
+  lead_id bigint not null references aiw_leads(id) on delete cascade,
+  channel text not null check (channel in ('email','call','linkedin')),
+  subject text not null default '',
+  body text not null,
+  status text not null default 'draft' check (status in ('draft','reviewed','sent','cancelled')),
+  created_by int references users(id) on delete set null,
+  reviewed_by int references users(id) on delete set null,
+  sent_at timestamptz,
+  created_at timestamptz not null default now()
+)`;
+await sql`create index if not exists aiw_outreach_status_idx on aiw_outreach_drafts(status, created_at desc)`;
+await sql`create table if not exists aiw_workflow_runs (
+  id bigserial primary key,
+  workflow text not null,
+  status text not null default 'recorded' check (status in ('recorded','completed','failed','needs_review')),
+  summary text not null default '',
+  lead_id bigint references aiw_leads(id) on delete set null,
+  actor_id int references users(id) on delete set null,
+  created_at timestamptz not null default now()
+)`;
+await sql`create index if not exists aiw_workflow_runs_created_idx on aiw_workflow_runs(created_at desc)`;
 console.log("[migrate] Database ready.");
 await sql.end();
